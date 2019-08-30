@@ -9,13 +9,13 @@ This VIM Driver can create any TOSCA types that are translatable to a known Heat
 | Create | Y         |
 | Find   | N         |
 
-Using the `tosca.nodes.Compute` type will result in an `OS::Nova::Server` being created in the target Openstack environment.
+Using the `os.ext.nodes.Compute` type will result in an `OS::Nova::Server` being created in the target Openstack environment.
 
 ## Create
 
 ### Properties and Attributes
 
-The TOSCA specification for `tosca.nodes.Compute` declares no properties. However, a custom extension named `os.nodes.Compute` is automatically added to all templates, which enables additional properties supported by Heat:
+The TOSCA specification for `tosca.nodes.Compute` declares no properties. However, a custom extension named `os.ext.nodes.Compute` is automatically added to all templates, which enables additional properties supported by Heat:
 
 - admin_pass
 - availability_zone
@@ -36,19 +36,20 @@ The TOSCA specification for `tosca.nodes.Compute` declares no properties. Howeve
 - user_data_format
 - user_data_update_policy
 
-The complete definition of `os.node.Compute` can found at `osvimdriver/tosca/definitions/type_extensions.yaml`
+The complete definition of `os.ext.nodes.Compute` can found at `osvimdriver/tosca/definitions/type_extensions.yaml`
 
-The TOSCA specification for `tosca.nodes.Compute` declares 4 attributes, however only `private_address` can currently be used with this driver. This will return the IP address of the server on the private network. 
+The TOSCA specification for `tosca.nodes.Compute` declares 4 attributes, however only `private_address` can currently be used with this driver. This will return the IP address of the server on the private network.
 
-Although the TOSCA specifications states all properties should be available as attributes, the translator being used by this driver currently does not support this. 
+Although the TOSCA specifications states all properties should be available as attributes, the translator being used by this driver currently does not support this.
 
 ### Host Capability
 
-The properties of the `host` capability on a `tosca.nodes.Compute` are used to calculate the `image` and `flavor` to be used by the `OS::Nova::Server`, unless properties of the same name are set on the node instead (the extension type `os.nodes.Compute` defines these additional properties, leave them empty to allow calculation to take place).
+The properties of the `host` capability on a `tosca.nodes.Compute` are used to calculate the `image` and `flavor` to be used by the `OS::Nova::Server`, unless properties of the same name are set on the node instead (the extension type `os.ext.nodes.Compute` defines these additional properties, leave them empty to allow calculation to take place).
 
 Currently, the translator used by this driver only supports a pre-defined list of flavors and images:
 
-Flavour: 
+Flavour:
+
 ```
 'm1.xlarge': {'mem_size': 16384, 'disk_size': 160, 'num_cpus': 8},
 'm1.large': {'mem_size': 8192, 'disk_size': 80, 'num_cpus': 4},
@@ -60,6 +61,7 @@ Flavour:
 ```
 
 Images:
+
 ```
 'ubuntu-software-config-os-init': {'architecture': 'x86_64', 'os_type': 'linux', 'os_distro': 'ubuntu', 'os_version': '14.04' },
 'ubuntu-12.04-software-config-os-init': {'architecture': 'x86_64', 'os_type': 'linux', 'os_distro': 'ubuntu', 'os_version': '12.04' },
@@ -78,7 +80,7 @@ Images:
 | Create | Y         |
 | Find   | Y         |
 
-Using the `tosca.nodes.network.Network` type will result in a `OS::Neutron::Network` and `OS::Neutron::Subnet` being created in the target Openstack environment. A existing network, not created by this driver or the parent Resource Manager, by name or id. It also possible, when creating infrastructure, to reference existing networks instead of creating them. 
+Using the `tosca.nodes.network.Network` type will result in a `OS::Neutron::Network` and `OS::Neutron::Subnet` being created in the target Openstack environment. It also possible, when creating infrastructure, to reference existing networks instead of creating them.
 
 ## Create
 
@@ -99,17 +101,18 @@ The following table details the supported properties when creating a network usi
 | physical_network | N         | -                                                                                                                |
 | dhcp_enabled     | Y         | Sets the `enable_dhcp` property on the subnet                                                                    |
 
-Although the TOSCA specifications states all properties should be available as attributes, the translator being used by this driver currently does not support this. This means it is not possible to use the `get_attribute` function to make use of their values elsewhere in the template. 
+Although the TOSCA specifications states all properties should be available as attributes, the translator being used by this driver currently does not support this. This means it is not possible to use the `get_attribute` function to make use of their values elsewhere in the template.
 
 ### Reference existing network on create
 
 When creating infrastructure, the TOSCA template may reference an existing network by adding a node of type `tosca.nodes.network.Network`. To indicate the network should be found, instead of created, either:
-- Set `network_name` and do NOT set `cidr` 
+
+- Set `network_name` and do NOT set `cidr`
 - Set `network_id`
 
 ## Find
 
-When finding an existing/external network using the find infrastructure API, the rules are different to create. The driver will use the Neutron API directly to retrieve information about the network and subnet. As a result, more attributes are available. A custom extension named `os.nodes.network.Network` is automatically added to all templates, which enables additional attributes to be retrieved as outputs from the template:
+When finding an existing/external network using the find infrastructure API, the rules are different to create. The driver will use the Neutron API directly to retrieve information about the network and subnet. As a result, more attributes are available. A custom extension named `os.ext.nodes.network.Network` is automatically added to all templates, which enables additional attributes to be retrieved as outputs from the template:
 
 - ip_version
 - cidr
@@ -123,6 +126,33 @@ When finding an existing/external network using the find infrastructure API, the
 - physical_network
 - dhcp_enabled
 
-The complete definition of `os.nodes.network.Network` can found at `osvimdriver/tosca/definitions/type_extensions.yaml`
+The complete definition of `os.ext.nodes.network.Network` can found at `osvimdriver/tosca/definitions/type_extensions.yaml`
 
 This project also includes a reference implementation of a Resource to be used as an "external reference" in LM, which makes use of the find infrastructure API to discover an existing network and return it's attributes. It can be found at `example-resources/neutron-network`.
+
+# Floating IP
+
+An extension type named `os.ext.nodes.network.FloatingIP` has been included which supports setting the `floating_network` through a requirement instead of a property.
+
+It also supports the `floating_ip_address` attribute.
+
+# Port
+
+An extension type named `os.ext.nodes.network.Port` has been included which supports a `security_groups` property, so a port may be associated to security groups.
+
+# Other Heat Types
+
+This VIM driver also includes additional types which map almost one-to-one with their equivalent Heat type.
+
+The following types have been added:
+
+| Tosca Type                         | Heat Type Equivalent           |
+| ---------------------------------- | ------------------------------ |
+| os.nodes.neutron.Net               | OS::Neutron::Net               |
+| os.nodes.neutron.Subnet            | OS::Neutron::Subnet            |
+| os.nodes.neutron.Router            | OS::Neutron::Router            |
+| os.nodes.neutron.RouterInterface   | OS::Neutron::RouterInterface   |
+| os.nodes.neutron.SecurityGroup     | OS::Neutron::SecurityGroup     |
+| os.nodes.neutron.SecurityGroupRule | OS::Neutron::SecurityGroupRule |
+
+The complete definition of these TOSCA types can be found at: [type extension](../osvimdriver/tosca/definitions/type_extensions.yaml)

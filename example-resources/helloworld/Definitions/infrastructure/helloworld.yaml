@@ -13,7 +13,7 @@ topology_template:
 
   node_templates:
     hello_world_server:
-      type: os.nodes.Compute
+      type: os.ext.nodes.Compute
       capabilities:
         host:
           # Heat translator will try and find an Openstack "flavour" which matches the given properties (TODO)
