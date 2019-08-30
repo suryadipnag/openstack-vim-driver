@@ -1,0 +1,37 @@
+name: resource::neutron_network::1.0
+description: network
+properties:
+  ip_version:
+    type: string
+    read-only: true
+  cidr:
+    type: string
+    read-only: true
+  start_ip:
+    type: string
+    read-only: true
+  end_ip:
+    type: string
+    read-only: true
+  gateway_ip:
+    type: string
+    read-only: true
+  network_id:
+    type: string
+    read-only: true
+  network_name:
+    type: string
+    read-only: true
+  segmentation_id:
+    type: string
+    read-only: true
+  network_type:
+    type: string
+    read-only: true
+  physical_network:
+    type: string
+    read-only: true
+  dhcp_enabled:
+    type: string
+    read-only: true
+lifecycle: []

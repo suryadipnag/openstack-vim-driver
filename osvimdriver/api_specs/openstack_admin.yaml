@@ -1,0 +1,60 @@
+openapi: 3.0.0
+info:
+  description: "RPC API to validate an Openstack location can be reached with given properties"
+  version: "1.0.0-oas3"
+  title: Openstack Location
+servers:
+  - url: /api/os
+tags:
+  - name: openstack-locations
+    description: Openstack Deployment Location validation
+paths:
+  /ping:
+    post:
+      tags:
+        - openstack-locations
+      summary: Ping an Openstack Location
+      description: >-
+        Attempt to connect to an Openstack Location with given properties
+      operationId: .ping
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PingRequest"
+      responses:
+        "200":
+          description: Request accepted, result of the ping included in the response body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PingResponse"
+        "400":
+          description: Bad request
+components:
+  schemas:
+    PingRequest:
+      type: object
+      properties:
+        deploymentLocation:
+          $ref: "#/components/schemas/DeploymentLocation"
+      required:
+        - deploymentLocation
+    PingResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        description:
+          type: string
+    DeploymentLocation:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        properties:
+          type: object
+      required:
+        - name

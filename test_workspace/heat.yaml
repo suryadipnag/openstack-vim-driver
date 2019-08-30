@@ -1,0 +1,61 @@
+heat_template_version: 2013-05-23
+
+description: >
+  Test
+
+parameters: {}
+resources:
+  mgmt_network:
+    type: OS::Neutron::Net
+    properties:
+      name: mgmt
+      value_specs:
+        router:external: true
+  mgmt_sub:
+    type: OS::Neutron::Subnet
+    properties:
+      cidr: 172.20.84.0/26
+      network: { get_resource: mgmt_network }
+  mgmt_router:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        external_fixed_ips:
+        - subnet:
+            get_attr:
+            - mgmt_sub
+            - name
+        network: public
+  mgmt_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: mgmt_security_group
+      rules:
+      - protocol: tcp
+  jumphost_server:
+    type: OS::Nova::Server
+    properties:
+      flavor: m1.tiny
+      user_data_format: SOFTWARE_CONFIG
+      image: xenial-server-cloudimg-amd64-disk1
+      key_name: helloworld
+      networks:
+      - port: { get_resource: jumphost_server_port }
+  jumphost_server_port:
+    type: OS::Neutron::Port
+    properties:
+      security_groups:
+      - mgmt_security_group
+      network: { get_resource: mgmt_network }
+  jumphost_server_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      port_id: { get_resource: jumphost_server_port }
+      floating_network: { get_resource: mgmt_network }
+outputs:
+  mgmt_ip_address:
+    value:
+      get_attr:
+      - jumphost_server_floating_ip
+      - floating_ip_address
+    description: The mgmt floating IP address

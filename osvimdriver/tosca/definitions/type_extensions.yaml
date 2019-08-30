@@ -1,0 +1,149 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+
+description: Custom types supported out-of-the-box by this driver
+
+
+node_types:
+  ##########################
+  ## Custom Openstack Types
+  ############################ 
+  ## The following types are Openstack specific
+  os.nodes.root:
+    derived_from: tosca.nodes.Root
+
+  ### Neutron
+  os.nodes.neutron.root:
+    derived_from: os.nodes.root
+
+  os.nodes.neutron.Router:
+    description: Router is a physical or virtual network device that passes network traffic between different networks (OS::Neutron::Router)
+    derived_from: os.nodes.neutron.root
+    properties:
+      admin_state_up:
+        description: the administrative state of the router
+        type: boolean
+        default: true
+  
+  os.nodes.neutron.Subnet:
+    description: A subnet represents an IP address block that can be used for assigning IP addresses to virtual instances. Each subnet must have a CIDR and must be associated with a network. IPs can be either selected from the whole subnet CIDR, or from “allocation pools” that can be specified by the user. (OS::Neutron::Subnet)
+    derived_from: os.nodes.neutron.root
+    properties:
+      cidr: 
+        type: string
+    attributes:
+      cidr: 
+        type: string
+    requirements:
+      - attached:
+          capability: os.capabilities.neutron.AttachableNetwork
+          relationship: os.relationships.neutron.AttachedNetwork
+          
+  os.capabilities.neutron.AttachableNetwork:
+    derived_from: tosca.capabilities.Root
+
+  os.relationships.neutron.AttachedNetwork:
+    derived_from: tosca.relationships.Root
+    valid_target_types: [ os.capabilities.neutron.AttachableNetwork ]
+
+  ##########################
+  ## Extension Types
+  ##########################
+  ## These types extend original tosca types to provide extra properties/attributes
+  os.ext.nodes.Compute:
+    description: Extension of Compute to include additional properties allowed on a Nova server
+    derived_from: tosca.nodes.Compute
+    properties:
+      admin_pass:
+        description: The administrator password for the server
+        type: string
+      availability_zone: 
+        description: Name of the availability zone for server placement
+        type: string
+      config_drive:
+        description: If True, enable config drive on the server
+        type: boolean
+      diskConfig:
+        description: Control how the disk is partitioned when the server is created
+        type: string
+      flavor:
+        description: The ID or name of the flavor to boot onto (you may instead use capability.host properties, which will find the best match based on desired CPU/Mem)
+        type: string
+      flavor_update_policy:
+        description: Policy on how to apply a flavor update; either by requesting a server resize or by replacing the entire server
+        type: string
+      image:
+        description: The ID or name of the image to boot with
+        type: string
+      image_update_policy: 
+        description: Policy on how to apply an image-id update; either by requesting a server rebuild or by replacing the entire server
+        type: string
+      key_name:
+        description: Name of keypair to inject into the server
+        type: string
+      metadata:
+        description: Arbitrary key/value metadata to store for this server. Both keys and values must be 255 characters or less. Non-string values will be serialized to JSON (and the serialized string must be 255 characters or less)
+        type: map
+      name: 
+        description: Server name
+        type: string
+      reservation_id:
+        description: A UUID for the set of servers being requested
+        type: string
+      scheduler_hints: 
+        description: Arbitrary key-value pairs specified by the client to help boot a server
+        type: map
+      security_groups:
+        description: List of security group names or IDs. Cannot be used if neutron ports are associated with this server; assign security groups to the ports instead
+        type: list
+      software_config_transport: 
+        description: >
+          How the server should receive the metadata required for software configuration. 
+          POLL_SERVER_CFN will allow calls to the cfn API action DescribeStackResource authenticated with the provided keypair. POLL_SERVER_HEAT will allow calls to the Heat API resource-show using the provided keystone credentials. 
+          POLL_TEMP_URL will create and populate a Swift TempURL with metadata for polling. 
+          ZAQAR_MESSAGE will create a dedicated zaqar queue and post the metadata for polling
+        type: string
+      user_data: 
+        description: User data script to be executed by cloud-init. Changes cause replacement of the resource by default, but can be ignored altogether by setting the `user_data_update_policy` property
+        type: string
+      user_data_format: 
+        description: >
+          How the user_data should be formatted for the server. 
+          For HEAT_CFNTOOLS, the user_data is bundled as part of the heat-cfntools cloud-init boot configuration data. 
+          For RAW the user_data is passed to Nova unmodified. 
+          For SOFTWARE_CONFIG user_data is bundled as part of the software config data, and metadata is derived from any associated SoftwareDeployment resources
+        type: string
+      user_data_update_policy:
+        description: Policy on how to apply a user_data update; either by ignoring it or by replacing the entire server
+        type: string
+      
+  os.ext.nodes.network.Network:
+    derived_from: tosca.nodes.network.Network
+    attributes:
+      # The following attributes are duplicates of the property definitions on tosca.nodes.network.Network
+      # They have been duplicated as the ToscaParser used by this driver does not automatically make properties available as attributes, as required by the TOSCA profile: 
+      # http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#_Toc445238240
+      ip_version:
+        type: integer
+      cidr: 
+        type: string
+      start_ip:
+        type: string
+      end_ip: 
+        type: string
+      gateway_ip: 
+        type: string
+      network_name: 
+        type: string
+      network_id:
+        type: string
+      segmentation_id:
+        type: string
+      network_type:
+        type: string
+      physical_network: 
+        type: string
+      dhcp_enabled:
+        type: boolean
+      # END duplicates
+
+      

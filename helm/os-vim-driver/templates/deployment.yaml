@@ -1,0 +1,35 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: os-vim-driver
+spec:
+  replicas: {{ .Values.app.replicas }}
+  template:
+    metadata:
+      labels:
+        app: os-vim-driver
+    spec:
+      hostAliases:
+      {{- if .Values.app.config.kafka.hostEnabled }}
+        - ip: {{ .Values.app.config.kafka.ip }}
+          hostnames:
+          - {{ .Values.app.config.kafka.host }}
+      {{- end }}
+      containers:
+        - name: os-vim-driver
+          image: {{ .Values.docker.image }}:{{ .Values.docker.version }}
+          imagePullPolicy: {{ .Values.docker.imagePullPolicy }}
+          ports:
+          - containerPort: 8292
+            protocol: TCP
+          envFrom:
+          - configMapRef:
+              name: os-vim-driver-env
+          volumeMounts:
+          - name: config
+            mountPath: /var/ovd/ovd_config.yml
+            subPath: ovd_config.yml
+      volumes:
+      - name: config
+        configMap:
+          name: os-vim-driver

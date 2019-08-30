@@ -1,0 +1,15 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+
+description: Openstack Neutron Network
+
+topology_template:
+  node_templates:
+    network:
+      type: tosca.nodes.network.Network
+      properties:
+        network_name: A
+    networkB:
+      type: tosca.nodes.network.Network
+      properties:
+        network_name: B
+
