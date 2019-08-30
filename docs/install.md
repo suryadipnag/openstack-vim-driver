@@ -39,13 +39,7 @@ This file will be found by the driver when it is started.
 The driver can be started with the simple command:
 
 ```
-osvimdriver
-```
-
-Alternatively, with the python3 module option:
-
-```
-python3 -m osvimdriver
+ovd-dev
 ```
 
 # Start Production Server
