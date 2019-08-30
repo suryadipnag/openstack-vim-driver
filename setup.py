@@ -19,7 +19,7 @@ setup(
         'python-neutronclient>=6.5.1,<7.0',
         'python-novaclient>=13.0.0,<14.0.0',
         'tosca-parser @ git+https://github.com/accanto-systems/tosca-parser.git@accanto',
-        'heat-translator>=1.4.1dev0',
+        'heat-translator @ git+https://github.com/accanto-systems/heat-translator.git@accanto',
         'uwsgi>=2.0.18',
         'gunicorn>=19.9.0'
     ],
