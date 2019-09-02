@@ -1,0 +1,5 @@
+include osvimdriver/pkg_info.json
+include osvimdriver/config/*.yml
+include osvimdriver/tosca/definitions/*.yaml
+include osvimdriver/api_specs/*.yaml
+include osvimdriver/bin/*

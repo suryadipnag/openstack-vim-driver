@@ -1,0 +1,22 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+
+description: Openstack Neutron Network
+
+node_types:
+  tosca.nodes.CustomNetwork:
+    derived_from: tosca.nodes.network.Network
+    interfaces:
+      Standard:
+        type: tosca.interfaces.node.lifecycle.Standard
+
+topology_template:
+  node_templates:
+    network:
+      type: tosca.nodes.network.Network
+      properties:
+        network_name: TestNetwork
+
+  outputs:
+    operation_output:
+      description: Example operation output (not supported)
+      value: { get_operation_output: [network, Standard, create, test_value] }

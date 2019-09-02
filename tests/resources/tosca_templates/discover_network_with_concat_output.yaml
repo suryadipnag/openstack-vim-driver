@@ -1,0 +1,15 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+
+description: Openstack Neutron Network
+
+topology_template:
+  node_templates:
+    network:
+      type: tosca.nodes.network.Network
+      properties:
+        network_name: TestNetwork
+
+  outputs:
+    concat_output:
+      description: Example concat output (not supported)
+      value: { concat: ['A', 'B'] }

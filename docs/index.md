@@ -1,0 +1,14 @@
+# Openstack VIM Driver
+
+Please read the following guides to get started with the VIM Driver
+
+## Install
+
+- [Install with Python](./install_with_python.md) - install the driver with python
+- [Kubernetes Install](./install_with_helm.md) - install the driver to Kubernetes using Helm
+
+## Using the Driver
+
+- [Deployment Locations](./deployment_locations.md) - details the properties expected by this driver on a Deployment Location
+- [Supported Tosca](./supported_tosca.md) - details on supported infrastructure types
+- [APIs](./apis.md) - details additional APIs on this driver not expected by a VIM driver

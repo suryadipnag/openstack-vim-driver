@@ -1,0 +1,33 @@
+import os
+
+RESOURCES_DIR_NAME = 'resources'
+
+# Tosca Templates
+TOSCA_TEMPLATES_DIR_NAME = 'tosca_templates'
+TOSCA_TEMPLATES_PATH = os.path.join(RESOURCES_DIR_NAME, TOSCA_TEMPLATES_DIR_NAME)
+TOSCA_HELLO_WORLD_FILE = 'helloworld.yaml'
+TOSCA_DISCOVER_NETWORK_FILE = 'discover_network.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_INPUTS_FILE = 'discover_network_with_inputs.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_INPUTS_AND_OUTPUTS_FILE = 'discover_network_with_inputs_and_outputs.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_UNSUPPORTED_PROPERTY_FUNCTION_FILE = 'discover_network_with_unsupported_property_function.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_UNSUPPORTED_PROPERTY_FILE = 'discover_network_with_unsupported_property.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_MUTLTIPLE_PROPERTIES_FILE = 'discover_network_with_multiple_properties.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_ID_FILE = 'discover_network_with_id.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_OUTPUTS_FILE = 'discover_network_with_outputs.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_FIXED_OUTPUT_FILE = 'discover_network_with_fixed_output.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_GET_PROPERTY_OUTPUT_FILE = 'discover_network_with_get_property_output.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_OUTPUT_TO_OTHER_NODE_FILE = 'discover_network_with_output_to_other_node.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_GET_INPUT_OUTPUT_FILE = 'discover_network_with_get_input_output.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_CONCAT_OUTPUT_FILE = 'discover_network_with_concat_output.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_TOKEN_OUTPUT_FILE = 'discover_network_with_token_output.yaml'
+TOSCA_DISCOVER_NETWORK_WITH_GET_OPERATION_OUTPUT_FILE = 'discover_network_with_get_operation_output.yaml'
+TOSCA_MISSING_NODE_TEMPLATES = 'missing_nodetemplates.yaml'
+TOSCA_MULTIPLE_NODE_TEMPLATES = 'multiple_nodetemplates.yaml'
+TOSCA_NOT_A_NETWORK_FILE = 'not_a_network.yaml'
+TOSCA_DISCOVER_NETWORK_FULL_ATTRIBUTES_SUPPORT_FILE = 'discover_network_full_attributes_support.yaml'
+TOSCA_MISSING_INPUT_FILE = 'missing_input.yaml'
+
+# Heat Templates
+HEAT_TEMPLATES_DIR_NAME = 'heat_templates'
+HEAT_TEMPLATES_PATH = os.path.join(RESOURCES_DIR_NAME, HEAT_TEMPLATES_DIR_NAME)
+HEAT_HELLO_WORLD_FILE = 'helloworld.hot.yaml'
