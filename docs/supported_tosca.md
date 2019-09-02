@@ -36,7 +36,7 @@ The TOSCA specification for `tosca.nodes.Compute` declares no properties. Howeve
 - user_data_format
 - user_data_update_policy
 
-The complete definition of `os.ext.nodes.Compute` can found at `osvimdriver/tosca/definitions/type_extensions.yaml`
+The complete definition of `os.ext.nodes.Compute` can found at [Full Types Definition](./full_tosca_types_definition.md)
 
 The TOSCA specification for `tosca.nodes.Compute` declares 4 attributes, however only `private_address` can currently be used with this driver. This will return the IP address of the server on the private network.
 
@@ -126,7 +126,7 @@ When finding an existing/external network using the find infrastructure API, the
 - physical_network
 - dhcp_enabled
 
-The complete definition of `os.ext.nodes.network.Network` can found at `osvimdriver/tosca/definitions/type_extensions.yaml`
+The complete definition of `os.ext.nodes.network.Network` can found at [Full Types Definition](./full_tosca_types_definition.md).
 
 This project also includes a reference implementation of a Resource to be used as an "external reference" in LM, which makes use of the find infrastructure API to discover an existing network and return it's attributes. It can be found at `example-resources/neutron-network`.
 
@@ -155,4 +155,4 @@ The following types have been added:
 | os.nodes.neutron.SecurityGroup     | OS::Neutron::SecurityGroup     |
 | os.nodes.neutron.SecurityGroupRule | OS::Neutron::SecurityGroupRule |
 
-The complete definition of these TOSCA types can be found at: [type extension](../osvimdriver/tosca/definitions/type_extensions.yaml)
+The complete definition of these TOSCA types can be found at [Full Types Definition](./full_tosca_types_definition.md).

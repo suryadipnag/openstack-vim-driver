@@ -20,4 +20,4 @@ Also update the inventory file to reflect the IP and user information for your t
 
 # Openstack Client
 
-Read [Openstack Client](./Openstack_Client.md) to learn how to install and configure the Openstack command line client.
+Read [Openstack Client](./openstack_client.md) to learn how to install and configure the Openstack command line client.

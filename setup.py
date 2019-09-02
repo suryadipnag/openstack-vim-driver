@@ -4,11 +4,16 @@ from setuptools import setup, find_namespace_packages
 with open('osvimdriver/pkg_info.json') as fp:
     _pkg_info = json.load(fp)
 
+with open("DESCRIPTION.md", "r") as description_file:
+    long_description = description_file.read()
+
 setup(
     name='os-vim-driver',
     version=_pkg_info['version'],
     author='Accanto Systems',
     description='Openstack implementation of a VIM driver',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     url="https://github.com/accanto-systems/openstack-vim-driver",
     packages=find_namespace_packages(include=['osvimdriver*']),
     include_package_data=True,
