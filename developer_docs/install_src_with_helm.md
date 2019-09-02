@@ -31,7 +31,7 @@ cd docker
 4. Build the docker image
 
 ```
-docker build -t os-vim-driver:<driver-version> .
+docker build -t accanto/os-vim-driver:<driver-version> .
 ```
 
 ## Run Helm Chart
