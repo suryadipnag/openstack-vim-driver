@@ -12,8 +12,7 @@ Please read the following guides to get started with the VIM Driver:
 
 ## User
 
-- [Install for Python](./docs/install.md) - install the driver with python
-- [Run](./docs/run.md) - install and run docker/helm chart versions of the driver
+- [Kubernetes Install](./docs/install_with_helm.md) - Install the driver on Kubernetes with Helm
 - [Deployment Locations](./docs/deployment_locations.md) - details the properties expected by this driver on a Deployment Location
 - [Supported Tosca](./docs/supported_tosca.md) - details on supported infrastructure types
 - [APIs](./docs/apis.md) - details additional APIs on this driver not expected by a VIM driver

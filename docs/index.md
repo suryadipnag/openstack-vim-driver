@@ -4,7 +4,6 @@ Please read the following guides to get started with the VIM Driver
 
 ## Install
 
-- [Install with Python](./install_with_python.md) - install the driver with python
 - [Kubernetes Install](./install_with_helm.md) - install the driver to Kubernetes using Helm
 
 ## Using the Driver
