@@ -53,11 +53,11 @@ class NetworkSearchImpl:
         if not hasattr(single_node_template.type_definition, 'type'):
             raise InvalidDiscoveryToscaError('Could not determine node type as type not present on parsed node: {0}'.format(single_node_template.name))
         single_node_type = single_node_template.type_definition.type
-        if single_node_type != NetworkTranslator.TOSCA.TYPE:
+        if single_node_type not in NetworkTranslator.TOSCA.TYPES:
             is_valid_type = False
             next_type = single_node_template.type_definition.parent_type
             while next_type != None:
-                if next_type.type == NetworkTranslator.TOSCA.TYPE:
+                if next_type.type in NetworkTranslator.TOSCA.TYPES:
                     is_valid_type = True
                     break
                 else:
@@ -77,11 +77,11 @@ class NetworkSearchImpl:
         properties_for_validation = network_node_template.type_definition.get_value(network_node_template.PROPERTIES, network_node_template.entity_tpl)
         if len(properties_for_validation) != 1:
             raise InvalidDiscoveryToscaError('{0} nodes can only be found with a single \'{1}\' or \'{2}\' property but multiple properties were found on the node template: {3}'.format(
-                NetworkTranslator.TOSCA.TYPE, NetworkTranslator.TOSCA.PROPS.NAME, NetworkTranslator.TOSCA.PROPS.ID, list(properties_for_validation.keys())))
+                network_node_template.type_definition.type, NetworkTranslator.TOSCA.PROPS.NAME, NetworkTranslator.TOSCA.PROPS.ID, list(properties_for_validation.keys())))
         single_property_key = list(properties_for_validation.keys())[0]
         if single_property_key != NetworkTranslator.TOSCA.PROPS.NAME and single_property_key != NetworkTranslator.TOSCA.PROPS.ID:
             raise InvalidDiscoveryToscaError('{0} nodes can only be found with a single \'{1}\' or \'{2}\' property but \'{3}\' was set instead'.format(
-                NetworkTranslator.TOSCA.TYPE, NetworkTranslator.TOSCA.PROPS.NAME, NetworkTranslator.TOSCA.PROPS.ID, single_property_key))
+                network_node_template.type_definition.type, NetworkTranslator.TOSCA.PROPS.NAME, NetworkTranslator.TOSCA.PROPS.ID, single_property_key))
         neutron_driver = self.openstack_location.neutron_driver
         properties = network_node_template.get_properties()
         target_property_value = properties[single_property_key].value
@@ -96,7 +96,7 @@ class NetworkSearchImpl:
                 network = neutron_driver.get_network_by_name(target_search_value)
             return network
         except neutronexceptions.NotFound as e:
-            raise NotDiscoveredError('Cannot find {0} with search value: {1}'.format(NetworkTranslator.TOSCA.TYPE, target_search_value)) from e
+            raise NotDiscoveredError('Cannot find {0} with search value: {1}'.format(network_node_template.type_definition.type, target_search_value)) from e
 
     def __populate_result(self, network, node_template, tosca_template):
         discover_id = network['id']
@@ -173,7 +173,7 @@ class Props:
 
 class NetworkTranslator:
 
-    TOSCA = Props(TYPE='tosca.nodes.network.Network',
+    TOSCA = Props(TYPES=['tosca.nodes.network.Network', 'os.ext.nodes.network.Network'],
                   PROPS=Props(NAME='network_name',
                               ID='network_id',
                               SEGMENTATION_ID='segmentation_id',
