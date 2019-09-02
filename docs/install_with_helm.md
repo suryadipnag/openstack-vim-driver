@@ -15,3 +15,7 @@ The above installation will expect Kafka to be running in the same Kubernetes na
 ```
 helm install os-vim-driver-<version>.tgz --name os-vim-driver --set app.config.override.messaging.connection_address=myhost:myport
 ```
+
+# Access Swagger UI
+
+The Swagger UI can be found at `http://your_host:31681/api/infrastructure/ui` e.g. `http://localhost:31681/api/infrastructure/ui`
