@@ -97,3 +97,5 @@ Usually the next dev version should be an minor increment of the previous, with 
 7.2. Update the `docker.version` in `helm/os-vim-driver/values.yaml` to the next development version number.
 
 7.3. Update the `version` and `appVersion` in `helm/os-vim-driver/Chart.yaml` to the next development version number.
+
+7.4 Push version number changes to Github
