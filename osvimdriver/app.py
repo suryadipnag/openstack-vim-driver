@@ -13,7 +13,7 @@ default_config_path = os.path.join(default_config_dir_path, 'ovd_config.yml')
 
 
 def create_app():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     app_builder = ignition.build_vim_driver('Openstack VIM Driver')
     app_builder.include_file_config_properties(default_config_path, required=True)
