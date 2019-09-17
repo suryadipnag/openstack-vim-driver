@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from osvimdriver.openstack.heat.driver import HeatDriver
+from osvimdriver.openstack.heat.driver import HeatDriver, StackNotFoundError
+from heatclient import exc as heatexc
+
 
 class TestHeatDriver(unittest.TestCase):
 
@@ -29,7 +31,7 @@ class TestHeatDriver(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             heat_driver.create_stack(None, 'heat_template_text')
         self.assertEqual(str(context.exception), 'stack_name must be provided')
-        
+
     @patch('osvimdriver.openstack.heat.driver.heatclient.Client')
     def test_create_stack_without_heat_template_fails(self, mock_heat_client_init):
         mock_session = MagicMock()
@@ -54,7 +56,17 @@ class TestHeatDriver(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             heat_driver.delete_stack(None)
         self.assertEqual(str(context.exception), 'stack_id must be provided')
-    
+
+    @patch('osvimdriver.openstack.heat.driver.heatclient.Client')
+    def test_delete_stack_not_found_fails(self, mock_heat_client_init):
+        mock_heat_client = mock_heat_client_init.return_value
+        mock_heat_client.stacks.delete.side_effect = heatexc.HTTPNotFound('Not found')
+        mock_session = MagicMock()
+        heat_driver = HeatDriver(mock_session)
+        with self.assertRaises(StackNotFoundError) as context:
+            heat_driver.delete_stack('12345')
+        self.assertEqual(str(context.exception), 'ERROR: Not found')
+
     @patch('osvimdriver.openstack.heat.driver.heatclient.Client')
     def test_get_stack(self, mock_heat_client_init):
         mock_heat_client = mock_heat_client_init.return_value
@@ -75,4 +87,13 @@ class TestHeatDriver(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             heat_driver.get_stack(None)
         self.assertEqual(str(context.exception), 'stack_id must be provided')
-    
+
+    @patch('osvimdriver.openstack.heat.driver.heatclient.Client')
+    def test_get_stack_not_found_fails(self, mock_heat_client_init):
+        mock_heat_client = mock_heat_client_init.return_value
+        mock_heat_client.stacks.get.side_effect = heatexc.HTTPNotFound('Not found')
+        mock_session = MagicMock()
+        heat_driver = HeatDriver(mock_session)
+        with self.assertRaises(StackNotFoundError) as context:
+            heat_driver.get_stack('12345')
+        self.assertEqual(str(context.exception), 'ERROR: Not found')

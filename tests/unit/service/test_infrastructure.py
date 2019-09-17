@@ -5,6 +5,7 @@ from ignition.model.infrastructure import CreateInfrastructureResponse, DeleteIn
 from osvimdriver.service.infrastructure import InfrastructureDriver
 from osvimdriver.service.tosca import ToscaValidationError
 from osvimdriver.tosca.discover import DiscoveryResult, NotDiscoveredError
+from osvimdriver.openstack.heat.driver import StackNotFoundError
 from tests.unit.testutils.constants import TOSCA_TEMPLATES_PATH, TOSCA_HELLO_WORLD_FILE
 
 
@@ -225,6 +226,14 @@ class TestInfrastructureDriver(unittest.TestCase):
         self.assertEqual(infrastructure_task.failure_details.failure_code, 'INFRASTRUCTURE_ERROR')
         self.assertEqual(infrastructure_task.failure_details.description, None)
         self.assertEqual(infrastructure_task.outputs, None)
+
+    def test_get_infrastructure_task_error_when_not_found(self):
+        self.mock_heat_driver.get_stack.side_effect = StackNotFoundError('Not found')
+        deployment_location = {'name': 'mock_location'}
+        driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        with self.assertRaises(InfrastructureNotFoundError) as context:
+            driver.get_infrastructure_task('1', '1', deployment_location)
+        self.assertEqual(str(context.exception), 'Not found')
 
     def test_find_infrastructure(self):
         self.mock_tosca_discover_service.discover.return_value = DiscoveryResult('1', {'test': '1'})

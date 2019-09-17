@@ -5,6 +5,7 @@ from ignition.service.infrastructure import InfrastructureDriverCapability, Infr
 from ignition.model.infrastructure import CreateInfrastructureResponse, DeleteInfrastructureResponse, FindInfrastructureResponse, InfrastructureTask, STATUS_IN_PROGRESS, STATUS_COMPLETE, STATUS_FAILED, STATUS_UNKNOWN
 from ignition.model.failure import FailureDetails, FAILURE_CODE_INFRASTRUCTURE_ERROR
 from osvimdriver.service.tosca import ToscaValidationError, NotDiscoveredError
+from osvimdriver.openstack.heat.driver import StackNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,10 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
     def get_infrastructure_task(self, infrastructure_id, request_id, deployment_location):
         openstack_location = self.location_translator.from_deployment_location(deployment_location)
         heat_driver = openstack_location.heat_driver
-        stack = heat_driver.get_stack(infrastructure_id)
+        try:
+            stack = heat_driver.get_stack(infrastructure_id)
+        except StackNotFoundError as e:
+            raise InfrastructureNotFoundError(str(e)) from e
         logger.debug('Retrieved stack: %s', stack)
         return self.__build_infrastructure_response(stack)
 

@@ -1,7 +1,12 @@
 import logging
 from heatclient import client as heatclient
+from heatclient import exc as heatexc
 
 logger = logging.getLogger(__name__)
+
+
+class StackNotFoundError(Exception):
+    pass
 
 
 class HeatDriver():
@@ -30,14 +35,20 @@ class HeatDriver():
             raise ValueError('stack_id must be provided')
         heat_client = self.__get_heat_client()
         logger.debug('Deleting stack with id %s', stack_id)
-        delete_result = heat_client.stacks.delete(stack_id)
+        try:
+            delete_result = heat_client.stacks.delete(stack_id)
+        except heatexc.HTTPNotFound as e:
+            raise StackNotFoundError(str(e)) from e
 
     def get_stack(self, stack_id):
         if stack_id is None:
             raise ValueError('stack_id must be provided')
         heat_client = self.__get_heat_client()
         logger.debug('Retrieving stack with id %s', stack_id)
-        result = heat_client.stacks.get(stack_id)
+        try:
+            result = heat_client.stacks.get(stack_id)
+        except heatexc.HTTPNotFound as e:
+            raise StackNotFoundError(str(e)) from e
         return result.to_dict()
 
     def get_stacks(self):
