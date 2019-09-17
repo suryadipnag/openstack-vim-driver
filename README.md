@@ -1,3 +1,6 @@
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Build Status](https://travis-ci.com/accanto-systems/openstack-vim-driver.svg?branch=master)](https://travis-ci.com/accanto-systems/openstack-vim-driver)
+
 # Openstack VIM Driver
 
 A VIM driver implementation that manages infrastructure with Openstack. Create/delete operations are managed with Heat, by first translating the TOSCA template for the infrastructure into a Heat template.
