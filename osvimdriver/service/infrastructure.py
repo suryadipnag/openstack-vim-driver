@@ -2,7 +2,7 @@ import uuid
 import logging
 from ignition.service.framework import Service, Capability, interface
 from ignition.service.infrastructure import InfrastructureDriverCapability, InfrastructureNotFoundError, InvalidInfrastructureTemplateError
-from ignition.model.infrastructure import CreateInfrastructureResponse, DeleteInfrastructureResponse, FindInfrastructureResponse, InfrastructureTask, STATUS_IN_PROGRESS, STATUS_COMPLETE, STATUS_FAILED, STATUS_UNKNOWN
+from ignition.model.infrastructure import CreateInfrastructureResponse, DeleteInfrastructureResponse, FindInfrastructureResponse, FindInfrastructureResult, InfrastructureTask, STATUS_IN_PROGRESS, STATUS_COMPLETE, STATUS_FAILED, STATUS_UNKNOWN
 from ignition.model.failure import FailureDetails, FAILURE_CODE_INFRASTRUCTURE_ERROR
 from osvimdriver.service.tosca import ToscaValidationError, NotDiscoveredError
 from osvimdriver.openstack.heat.driver import StackNotFoundError
@@ -63,13 +63,15 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
         inputs = {
             'instance_name': instance_name
         }
+        find_result = None
         try:
             discover_result = self.tosca_discovery_service.discover(template, openstack_location, inputs)
+            find_result = FindInfrastructureResult(discover_result.discover_id, discover_result.outputs)
         except NotDiscoveredError as e:
-            raise InfrastructureNotFoundError(str(e)) from e
+            pass  # Return empty result
         except ToscaValidationError as e:
             raise InvalidInfrastructureTemplateError(str(e)) from e
-        return FindInfrastructureResponse(discover_result.discover_id, discover_result.outputs)
+        return FindInfrastructureResponse(find_result)
 
     def __build_infrastructure_response(self, stack):
         infrastructure_id = stack.get('id')
