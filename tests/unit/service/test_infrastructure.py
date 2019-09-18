@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock, ANY
 from ignition.service.infrastructure import InfrastructureNotFoundError, InvalidInfrastructureTemplateError
-from ignition.model.infrastructure import CreateInfrastructureResponse, DeleteInfrastructureResponse, InfrastructureTask, FindInfrastructureResponse
+from ignition.model.infrastructure import CreateInfrastructureResponse, DeleteInfrastructureResponse, InfrastructureTask, FindInfrastructureResponse, FindInfrastructureResult
 from osvimdriver.service.infrastructure import InfrastructureDriver
 from osvimdriver.service.tosca import ToscaValidationError
 from osvimdriver.tosca.discover import DiscoveryResult, NotDiscoveredError
@@ -240,21 +240,23 @@ class TestInfrastructureDriver(unittest.TestCase):
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         deployment_location = {'name': 'mock_location'}
         template = 'tosca_template'
-        result = driver.find_infrastructure(template, 'test', deployment_location)
-        self.assertIsInstance(result, FindInfrastructureResponse)
-        self.assertEqual(result.infrastructure_id, '1')
-        self.assertEqual(result.outputs, {'test': '1'})
+        response = driver.find_infrastructure(template, 'test', deployment_location)
+        self.assertIsInstance(response, FindInfrastructureResponse)
+        self.assertIsNotNone(response.result)
+        self.assertIsInstance(response.result, FindInfrastructureResult)
+        self.assertEqual(response.result.infrastructure_id, '1')
+        self.assertEqual(response.result.outputs, {'test': '1'})
         self.mock_location_translator.from_deployment_location.assert_called_once_with(deployment_location)
         self.mock_tosca_discover_service.discover.assert_called_once_with(template, self.mock_location_translator.from_deployment_location.return_value, {'instance_name': 'test'})
 
-    def test_find_infrastructure_returns_error_when_not_found(self):
+    def test_find_infrastructure_returns_empty_when_not_found(self):
         self.mock_tosca_discover_service.discover.side_effect = NotDiscoveredError('Not found')
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         deployment_location = {'name': 'mock_location'}
         template = 'tosca_template'
-        with self.assertRaises(InfrastructureNotFoundError) as context:
-            driver.find_infrastructure(template, 'test', deployment_location)
-        self.assertEqual(str(context.exception), 'Not found')
+        response = driver.find_infrastructure(template, 'test', deployment_location)
+        self.assertIsInstance(response, FindInfrastructureResponse)
+        self.assertIsNone(response.result)
 
     def test_find_infrastructure_with_invalid_template_throws_error(self):
         self.mock_tosca_discover_service.discover.side_effect = ToscaValidationError('Validation error')
