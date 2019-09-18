@@ -17,7 +17,9 @@ The following steps detail how the Openstack VIM driver release is produced. Thi
 
 1.3. Ensure the `version` and `appVersion` in `helm/os-vim-driver/Chart.yaml` includes the correct version number
 
-1.4 Push all version number changes to Github so the may be tagged by the release
+1.4 Push all version number changes to Github
+
+1.5 Tag the commit with the new version in Git
 
 ## 2. Build Python Wheel
 
@@ -67,25 +69,41 @@ helm package helm/os-vim-driver
 
 ## 6. Create release on Github
 
-5.1 Navigate to Releases on the Github repository for this project and create a new release.
+6.1 Navigate to Releases on the Github repository for this project and create a new release.
 
-5.2 Ensure the version tag and title correspond with the version number set in the pkg_info file earlier. Include release notes in the description of the release.
+6.2 Ensure the version tag and title correspond with the version number set in the pkg_info file earlier.
 
-5.3 Attach the docs archive to the release
+6.3 Attach the docs archive to the release
 
-5.4 Attach the helm chart archive to the release
+6.4 Attach the helm chart archive to the release
 
-5.5 Push the docker image to Dockerhub with:
+6.5 Push the docker image to Dockerhub with:
 
 ```
 docker push accanto/os-vim-driver:<release version number>
 ```
 
-## 7. Set next development version
+## 7. Generate Release Notes
+
+Release notes are produced by updating the CHANGELOG.md, then copying the section for this version to the description field in the created Github release.
+
+The CHANGELOG is updated using [github-changelog-generator](https://github.com/github-changelog-generator/github-changelog-generator#why-should-i-care)
+
+7.1 Update CHANGELOG.md
+
+```
+github_changelog_generator accanto-systems/ignition
+```
+
+7.2 Commit the updated CHANGELOG.md
+
+7.3 Copy the section for the newly released version from CHANGELOG.md into the description of the release created on Github
+
+## 8. Set next development version
 
 Usually the next dev version should be an minor increment of the previous, with `dev0` added. For example, after releasing 0.1.0 it would be `0.2.0.dev0`.
 
-7.1 Set the version of the next development version in `osvimdriver/pkg_info.json`:
+8.1 Set the version of the next development version in `osvimdriver/pkg_info.json`:
 
 ```
 {
@@ -94,8 +112,8 @@ Usually the next dev version should be an minor increment of the previous, with 
 }
 ```
 
-7.2. Update the `docker.version` in `helm/os-vim-driver/values.yaml` to the next development version number.
+8.2. Update the `docker.version` in `helm/os-vim-driver/values.yaml` to the next development version number.
 
-7.3. Update the `version` and `appVersion` in `helm/os-vim-driver/Chart.yaml` to the next development version number.
+8.3. Update the `version` and `appVersion` in `helm/os-vim-driver/Chart.yaml` to the next development version number.
 
-7.4 Push version number changes to Github
+8.4 Push version number changes to Github
