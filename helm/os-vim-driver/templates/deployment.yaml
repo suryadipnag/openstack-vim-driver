@@ -25,6 +25,8 @@ spec:
           envFrom:
           - configMapRef:
               name: os-vim-driver-env
+          resources:
+{{ toYaml .Values.app.resources | indent 12 }}   
           volumeMounts:
           - name: config
             mountPath: /var/ovd/ovd_config.yml
