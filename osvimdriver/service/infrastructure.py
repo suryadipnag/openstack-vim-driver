@@ -16,6 +16,8 @@ OS_STACK_STATUS_DELETE_IN_PROGRESS = 'DELETE_IN_PROGRESS'
 OS_STACK_STATUS_DELETE_COMPLETE = 'DELETE_COMPLETE'
 OS_STACK_STATUS_DELETE_FAILED = 'DELETE_FAILED'
 
+TOSCA_TEMPLATE_TYPE = 'TOSCA'
+HEAT_TEMPLATE_TYPE = 'HEAT'
 
 class InfrastructureDriver(Service, InfrastructureDriverCapability):
 
@@ -28,12 +30,17 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
         self.tosca_discovery_service = kwargs.get('tosca_discovery_service')
         self.location_translator = location_translator
 
-    def create_infrastructure(self, template, inputs, deployment_location):
-        try:
-            heat_template = self.heat_translator.generate_heat_template(template)
-        except ToscaValidationError as e:
-            raise InvalidInfrastructureTemplateError(str(e)) from e
-        logger.debug('Translated Tosca template:\n%s\nto Heat template:\n%s', template, heat_template)
+    def create_infrastructure(self, template, template_type, inputs, deployment_location):
+        if template_type.upper() == TOSCA_TEMPLATE_TYPE.upper():
+            try:
+                heat_template = self.heat_translator.generate_heat_template(template)
+            except ToscaValidationError as e:
+                raise InvalidInfrastructureTemplateError(str(e)) from e
+            logger.debug('Translated Tosca template:\n%s\nto Heat template:\n%s', template, heat_template)
+        elif template_type.upper() == HEAT_TEMPLATE_TYPE.upper():
+            heat_template = template
+        else:
+            raise InvalidInfrastructureTemplateError('Cannot create using template of type \'{0}\'. Must be one of: {1}'.format(template_type, [TOSCA_TEMPLATE_TYPE, HEAT_TEMPLATE_TYPE]))
         openstack_location = self.location_translator.from_deployment_location(deployment_location)
         heat_driver = openstack_location.heat_driver
         heat_input_util = openstack_location.get_heat_input_util()
@@ -58,7 +65,9 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
         heat_driver.delete_stack(infrastructure_id)
         return DeleteInfrastructureResponse(infrastructure_id, infrastructure_id)
 
-    def find_infrastructure(self, template, instance_name, deployment_location):
+    def find_infrastructure(self, template, template_type, instance_name, deployment_location):
+        if template_type.upper() != TOSCA_TEMPLATE_TYPE.upper():
+            raise InvalidInfrastructureTemplateError('Cannot find by template_type \'{0}\'. Must be \'{1}\''.format(template_type, TOSCA_TEMPLATE_TYPE))
         openstack_location = self.location_translator.from_deployment_location(deployment_location)
         inputs = {
             'instance_name': instance_name

@@ -32,7 +32,7 @@ class TestInfrastructureDriver(unittest.TestCase):
         deployment_location = {'name': 'mock_location'}
         template = 'tosca_template'
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
-        result = driver.create_infrastructure(template, {'propA': 'valueA', 'propB': 'valueB'}, deployment_location)
+        result = driver.create_infrastructure(template, 'TOSCA', {'propA': 'valueA', 'propB': 'valueB'}, deployment_location)
         self.assertIsInstance(result, CreateInfrastructureResponse)
         self.assertEqual(result.infrastructure_id, '1')
         self.assertEqual(result.request_id, '1')
@@ -40,14 +40,35 @@ class TestInfrastructureDriver(unittest.TestCase):
         self.mock_location_translator.from_deployment_location.assert_called_once_with(deployment_location)
         self.mock_heat_driver.create_stack.assert_called_once_with(ANY, self.mock_heat_translator.generate_heat_template.return_value, {'propA': 'valueA'})
 
+    def test_create_infrastructure_with_heat(self):
+        self.mock_heat_driver.create_stack.return_value = '1'
+        deployment_location = {'name': 'mock_location'}
+        template = 'heat_template'
+        driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        result = driver.create_infrastructure(template, 'HEAT', {'propA': 'valueA', 'propB': 'valueB'}, deployment_location)
+        self.assertIsInstance(result, CreateInfrastructureResponse)
+        self.assertEqual(result.infrastructure_id, '1')
+        self.assertEqual(result.request_id, '1')
+        self.mock_heat_translator.generate_heat_template.assert_not_called()
+        self.mock_location_translator.from_deployment_location.assert_called_once_with(deployment_location)
+        self.mock_heat_driver.create_stack.assert_called_once_with(ANY, 'heat_template', {'propA': 'valueA'})
+
     def test_create_infrastructure_with_invalid_template_throws_error(self):
         deployment_location = {'name': 'mock_location'}
         template = 'tosca_template'
         self.mock_heat_translator.generate_heat_template.side_effect = ToscaValidationError('Validation error')
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         with self.assertRaises(InvalidInfrastructureTemplateError) as context:
-            driver.create_infrastructure(template, {'propA': 'valueA', 'propB': 'valueB'}, deployment_location)
+            driver.create_infrastructure(template, 'TOSCA', {'propA': 'valueA', 'propB': 'valueB'}, deployment_location)
         self.assertEqual(str(context.exception), 'Validation error')
+
+    def test_create_infrastructure_with_invalid_template_type_throws_error(self):
+        deployment_location = {'name': 'mock_location'}
+        template = 'tosca_template'
+        driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        with self.assertRaises(InvalidInfrastructureTemplateError) as context:
+            driver.create_infrastructure(template, 'YAML', {'propA': 'valueA', 'propB': 'valueB'}, deployment_location)
+        self.assertEqual(str(context.exception), 'Cannot create using template of type \'YAML\'. Must be one of: [\'TOSCA\', \'HEAT\']')
 
     def test_delete_infrastructure(self):
         deployment_location = {'name': 'mock_location'}
@@ -240,7 +261,7 @@ class TestInfrastructureDriver(unittest.TestCase):
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         deployment_location = {'name': 'mock_location'}
         template = 'tosca_template'
-        response = driver.find_infrastructure(template, 'test', deployment_location)
+        response = driver.find_infrastructure(template, 'TOSCA', 'test', deployment_location)
         self.assertIsInstance(response, FindInfrastructureResponse)
         self.assertIsNotNone(response.result)
         self.assertIsInstance(response.result, FindInfrastructureResult)
@@ -254,7 +275,7 @@ class TestInfrastructureDriver(unittest.TestCase):
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         deployment_location = {'name': 'mock_location'}
         template = 'tosca_template'
-        response = driver.find_infrastructure(template, 'test', deployment_location)
+        response = driver.find_infrastructure(template, 'TOSCA', 'test', deployment_location)
         self.assertIsInstance(response, FindInfrastructureResponse)
         self.assertIsNone(response.result)
 
@@ -264,5 +285,13 @@ class TestInfrastructureDriver(unittest.TestCase):
         deployment_location = {'name': 'mock_location'}
         template = 'tosca_template'
         with self.assertRaises(InvalidInfrastructureTemplateError) as context:
-            driver.find_infrastructure(template, 'test', deployment_location)
+            driver.find_infrastructure(template, 'TOSCA', 'test', deployment_location)
         self.assertEqual(str(context.exception), 'Validation error')
+
+    def test_find_infrastructure_with_invalid_template_type_throws_error(self):
+        driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        deployment_location = {'name': 'mock_location'}
+        template = 'tosca_template'
+        with self.assertRaises(InvalidInfrastructureTemplateError) as context:
+            driver.find_infrastructure(template, 'YAML', 'test', deployment_location)
+        self.assertEqual(str(context.exception), 'Cannot find by template_type \'YAML\'. Must be \'TOSCA\'')
