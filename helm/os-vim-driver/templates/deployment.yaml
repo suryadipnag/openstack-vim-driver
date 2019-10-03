@@ -8,6 +8,7 @@ spec:
     metadata:
       labels:
         app: os-vim-driver
+        part-of: alm
     spec:
       hostAliases:
       {{- if .Values.app.config.kafka.hostEnabled }}
