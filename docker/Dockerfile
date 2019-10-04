@@ -12,7 +12,7 @@ ENV WSGI_CONTAINER ${WSGI_CONTAINER:-uwsgi}
 COPY whls/*.whl /whls/
 
 RUN addgroup -S ovd \
- && adduser -S ovd -G ovd \
+ && adduser -S ovd -G ovd -u 100 \
  && mkdir -p /var/ovd \
  && chown -R ovd:ovd /var/ovd \
  && apk add --no-cache bash \

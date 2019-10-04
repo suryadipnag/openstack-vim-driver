@@ -20,6 +20,9 @@ spec:
         - name: os-vim-driver
           image: {{ .Values.docker.image }}:{{ .Values.docker.version }}
           imagePullPolicy: {{ .Values.docker.imagePullPolicy }}
+          securityContext:
+            # run as ovd
+            runAsUser: 100
           ports:
           - containerPort: 8292
             protocol: TCP
