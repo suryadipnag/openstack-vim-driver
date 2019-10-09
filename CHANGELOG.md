@@ -1,5 +1,23 @@
 # Change Log
 
+## [0.3.0](https://github.com/accanto-systems/openstack-vim-driver/tree/0.3.0) (2019-10-09)
+[Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.2.0...0.3.0)
+
+**Dependencies:**
+
+- Upgraded to Ignition 0.4.0
+
+**Fixed bugs:**
+
+- Configure helm chart to explicitly run the container as "old" user [\#9](https://github.com/accanto-systems/openstack-vim-driver/issues/9)
+
+**Implemented enhancements:**
+
+- Add affinity and toleration rules to helm chart [\#13](https://github.com/accanto-systems/openstack-vim-driver/issues/13)
+- Configure K8s Label to enable Filebeat logging [\#11](https://github.com/accanto-systems/openstack-vim-driver/issues/11)
+- Support Heat templates [\#7](https://github.com/accanto-systems/openstack-vim-driver/issues/7)
+- Include resource requests and limits configuration in Helm chart [\#5](https://github.com/accanto-systems/openstack-vim-driver/issues/5)
+
 ## [0.2.0](https://github.com/accanto-systems/openstack-vim-driver/tree/0.2.0) (2019-09-18)
 [Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.1.0...0.2.0)
 
