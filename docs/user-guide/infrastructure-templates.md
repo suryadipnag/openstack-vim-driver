@@ -1,6 +1,30 @@
-# Creating Resources
+# Infrastructure Templates
 
-This VIM Driver can create any TOSCA types that are translatable to a known Heat type. The following guide explains how particular types are implemented by this driver and details any limiations to using them.
+The API for create and find infrastructure requests specifies templates are passed to the driver to describe the infrastructure. These templates can be of any type supported by a driver.
+
+Currently the Openstack VIM driver supports two template types, however one of them is only usable when creating infrastructure:
+
+| Template Type | Create Infrastructure | Find Infrastructure |
+| --- | --- | --- |
+| TOSCA | Y | Y |
+| HEAT | Y | N |
+
+Heat is generally easier to use as Tosca requires translation, so it's behaviour depends on whether the types used can be translated or not. 
+
+# Heat Support
+
+The Openstack VIM driver uses the Heat API to create infrastructure, which means any template supported by the version of Heat on your Openstack environment will work fine.
+
+We recommend reading through the Openstack [Template Guide](https://docs.openstack.org/heat/train/template_guide/) to learn about the Heat template syntax.
+
+# TOSCA Support
+
+The Openstack VIM driver can create any TOSCA types, from v1.0 of the [simple profile](http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html), that are translatable to a known Heat type. The ability to translate is determined by two aspects:
+
+- the conversion support offered in the [heat translator](https://github.com/accanto-systems/heat-translator/tree/accanto) library used by this driver
+- additional types provided by this driver
+
+The following sections detail how particular types are implemented by this driver and details any limiations to using them.
 
 # Compute
 
@@ -9,7 +33,7 @@ This VIM Driver can create any TOSCA types that are translatable to a known Heat
 | Create | Y         |
 | Find   | N         |
 
-Using the `os.ext.nodes.Compute` type will result in an `OS::Nova::Server` being created in the target Openstack environment.
+Using the `tosca.nodes.Compute` or `os.ext.nodes.Compute` type will result in an `OS::Nova::Server` being created in the target Openstack environment.
 
 ## Create
 
@@ -36,7 +60,7 @@ The TOSCA specification for `tosca.nodes.Compute` declares no properties. Howeve
 - user_data_format
 - user_data_update_policy
 
-The complete definition of `os.ext.nodes.Compute` can found at [Full Types Definition](./full_tosca_types_definition.md)
+The complete definition of `os.ext.nodes.Compute` can found at [Full Types Definition](../reference/full_tosca_types_definition.md)
 
 The TOSCA specification for `tosca.nodes.Compute` declares 4 attributes, however only `private_address` can currently be used with this driver. This will return the IP address of the server on the private network.
 
@@ -126,7 +150,7 @@ When finding an existing/external network using the find infrastructure API, the
 - physical_network
 - dhcp_enabled
 
-The complete definition of `os.ext.nodes.network.Network` can found at [Full Types Definition](./full_tosca_types_definition.md).
+The complete definition of `os.ext.nodes.network.Network` can found at [Full Types Definition](../reference/full_tosca_types_definition.md).
 
 This project also includes a reference implementation of a Resource to be used as an "external reference" in LM, which makes use of the find infrastructure API to discover an existing network and return it's attributes. It can be found at `example-resources/neutron-network`.
 
@@ -155,4 +179,4 @@ The following types have been added:
 | os.nodes.neutron.SecurityGroup     | OS::Neutron::SecurityGroup     |
 | os.nodes.neutron.SecurityGroupRule | OS::Neutron::SecurityGroupRule |
 
-The complete definition of these TOSCA types can be found at [Full Types Definition](./full_tosca_types_definition.md).
+The complete definition of these TOSCA types can be found at [Full Types Definition](../reference/full_tosca_types_definition.md).

@@ -1,6 +1,6 @@
 # Deployment Locations
 
-A deployment location must be provided to an infrastructure request to indicate the Openstack environment to be used. The deployment location will be managed by Brent (Resource Manager) but must have particular properties to be successfully used by this driver.
+A deployment location must be provided to an infrastructure request to indicate the Openstack environment to be used. The deployment location will be managed by the Stratoss&trade; Lifecycle Manager and Brent but must have particular properties to be successfully used by this driver.
 
 # Properties
 
@@ -11,7 +11,6 @@ The following properties are supported by the driver:
 | os_api_url      | -       | Y                                  | Defines the address of the Openstack environment. This address will be used for all API requests, including authentication |
 | os_auth_enabled | True    | N                                  | Informs the driver that the Openstack environment requires authentication with keystone                                    |
 | os_auth_api     | -       | Y - when `os_auth_enabled` is True | Defines the authentication API endpoint used to make authentication requests by this driver                                |
-
 This driver currently supports password authentication only. The following properties may be set on a deployment location to configure the user for all requests:
 
 | Name                        | Type    | Detail                          |
