@@ -16,3 +16,10 @@ The following sections explain how the VIM Driver works and the restrictions it 
 - [Property Handling](property-handling.md) - details how properties for a Resource are handled as inputs and outputs during requests
 - [Deployment Locations](deployment-locations.md) - details the properties expected by this driver on a valid deployment location
 - [Openstack Admin API](os-admin-api.md) - additional API available to check Openstack deployment locations are reachable from the driver
+
+# Example Resources
+
+Two example Resources have been included to demonstrate creating/deleting infrastructure and finding infrastructure:
+
+- [Helloworld Compute](./reference/example-resources/helloworld-compute/Readme.md) - simple Resource which creates a single compute instance in Openstack (TOSCA and HEAT examples included)
+- [Neutron Network](./reference/example-resources/neutron-network/Readme.md) - a Resource which supports being found with a piece of discovery infrastructure. Use this Resource as an external reference in an Assembly to link to an existing network in Openstack
