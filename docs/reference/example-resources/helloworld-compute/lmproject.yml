@@ -1,0 +1,5 @@
+schema: '2.0'
+name: helloworld-compute
+type: Resource
+version: '1.0'
+resource-manager: brent

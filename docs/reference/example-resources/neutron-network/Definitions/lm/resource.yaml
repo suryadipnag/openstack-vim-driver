@@ -1,4 +1,3 @@
-name: resource::neutron_network::1.0
 description: network
 properties:
   ip_version:

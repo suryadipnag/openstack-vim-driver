@@ -1,14 +1,25 @@
 # Openstack VIM Driver
 
-Please read the following guides to get started with the VIM Driver
+This driver implements the Stratoss&trade; Lifecycle Manager Brent Infrastructure APIs to allow infrastructure to be managed in Openstack.
 
-## Install
+The driver has been written in Python3 and can be with the publicly available docker image and helm chart.
 
-- [Kubernetes Install](./install_with_helm.md) - install the driver to Kubernetes using Helm
+# Install
 
-## Using the Driver
+The driver can installed on [Kubernetes](./k8s-install.md) using Helm.
 
-- [Deployment Locations](./deployment_locations.md) - details the properties expected by this driver on a Deployment Location
-- [Supported Template Types](./supported_template_types.md) - details on supported infrastructure template types
-- [Supported Tosca](./supported_tosca.md) - details on supported infrastructure types
-- [APIs](./apis.md) - details additional APIs on this driver not expected by a VIM driver
+# User Guide
+
+The following sections explain how the VIM Driver works and the restrictions it places on the infrastructure templates used for Resources.
+
+- [Infrastructure Templates](./user-guide/infrastructure-templates.md) - supported templates and types for infrastructure
+- [Property Handling](./user-guide/property-handling.md) - details how properties for a Resource are handled as inputs and outputs during requests
+- [Deployment Locations](./user-guide/deployment-locations.md) - details the properties expected by this driver on a valid deployment location
+- [Openstack Admin API](./user-guide/os-admin-api.md) - additional API available to check Openstack deployment locations are reachable from the driver
+
+# Example Resources
+
+Two example Resources have been included to demonstrate creating/deleting infrastructure and finding infrastructure:
+
+- [Helloworld Compute](./reference/example-resources/helloworld-compute/Readme.md) - simple Resource which creates a single compute instance in Openstack (TOSCA and HEAT examples included)
+- [Neutron Network](./reference/example-resources/neutron-network/Readme.md) - a Resource which supports being found with a piece of discovery infrastructure. Use this Resource as an external reference in an Assembly to link to an existing network in Openstack
