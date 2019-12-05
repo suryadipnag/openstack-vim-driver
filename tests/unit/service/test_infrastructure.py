@@ -48,6 +48,34 @@ class TestInfrastructureDriver(unittest.TestCase):
             driver.create_infrastructure(template, 'HEAT', {'stack_id': 'MY_STACK_ID'}, deployment_location)
         self.assertEqual(str(context.exception), 'Existing stack not found')
 
+    def test_create_infrastructure_with_stack_id_as_none(self):
+        self.mock_heat_driver.create_stack.return_value = '1'
+        deployment_location = {'name': 'mock_location'}
+        template = 'tosca_template'
+        driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        result = driver.create_infrastructure(template, 'TOSCA', {'stack_id': None}, deployment_location)
+        self.assertIsInstance(result, CreateInfrastructureResponse)
+        self.assertEqual(result.infrastructure_id, '1')
+        self.assertEqual(result.request_id, '1')
+        self.mock_heat_translator.generate_heat_template.assert_called_once_with(template)
+        self.mock_location_translator.from_deployment_location.assert_called_once_with(deployment_location)
+        self.mock_heat_driver.create_stack.assert_called_once_with(ANY, self.mock_heat_translator.generate_heat_template.return_value, {'propA': 'valueA'})
+        self.mock_heat_driver.get_stack.assert_not_called()
+
+    def test_create_infrastructure_with_stack_id_empty(self):
+        self.mock_heat_driver.create_stack.return_value = '1'
+        deployment_location = {'name': 'mock_location'}
+        template = 'tosca_template'
+        driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        result = driver.create_infrastructure(template, 'TOSCA', {'stack_id': ' '}, deployment_location)
+        self.assertIsInstance(result, CreateInfrastructureResponse)
+        self.assertEqual(result.infrastructure_id, '1')
+        self.assertEqual(result.request_id, '1')
+        self.mock_heat_translator.generate_heat_template.assert_called_once_with(template)
+        self.mock_location_translator.from_deployment_location.assert_called_once_with(deployment_location)
+        self.mock_heat_driver.create_stack.assert_called_once_with(ANY, self.mock_heat_translator.generate_heat_template.return_value, {'propA': 'valueA'})
+        self.mock_heat_driver.get_stack.assert_not_called()
+
     def test_create_infrastructure(self):
         self.mock_heat_driver.create_stack.return_value = '1'
         deployment_location = {'name': 'mock_location'}

@@ -35,12 +35,13 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
         heat_driver = openstack_location.heat_driver
         if 'stack_id' in inputs:
             stack_id = inputs.get('stack_id')
-            try:
-                ##Check for valid stack
-                heat_driver.get_stack(stack_id)
-            except StackNotFoundError as e:
-                raise InfrastructureNotFoundError(str(e)) from e
-            return CreateInfrastructureResponse(stack_id, stack_id)
+            if stack_id != None and len(stack_id.strip())!=0:
+                try:
+                    ##Check for valid stack
+                    heat_driver.get_stack(stack_id.strip())
+                except StackNotFoundError as e:
+                    raise InfrastructureNotFoundError(str(e)) from e
+                return CreateInfrastructureResponse(stack_id, stack_id)
         if template_type.upper() == TOSCA_TEMPLATE_TYPE.upper():
             try:
                 heat_template = self.heat_translator.generate_heat_template(template)
