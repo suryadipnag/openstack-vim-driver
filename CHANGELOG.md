@@ -1,5 +1,25 @@
 # Change Log
 
+## [0.4.0](https://github.com/accanto-systems/openstack-vim-driver/tree/0.4.0) (2019-12-05)
+[Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.3.0...0.4.0)
+
+**Fixed bugs:**
+
+- OSError('libc not found') when running with Guincorn [\#21](https://github.com/accanto-systems/openstack-vim-driver/issues/21)
+
+**Implemented enhancements:**
+
+- Recognise existing stacks on request [\#23](https://github.com/accanto-systems/openstack-vim-driver/issues/23)
+
+**Maintenaince Tasks:**
+
+- Tighten restrictions on dependency versions [\#18](https://github.com/accanto-systems/openstack-vim-driver/issues/18)
+- Support building Docker image with development version of Ignition [\#19](https://github.com/accanto-systems/openstack-vim-driver/issues/19)
+
+**Documentation:**
+
+- Improve documentation layout and include descriptions of property handling [\#15](https://github.com/accanto-systems/openstack-vim-driver/issues/15)
+
 ## [0.3.0](https://github.com/accanto-systems/openstack-vim-driver/tree/0.3.0) (2019-10-09)
 [Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.2.0...0.3.0)
 
