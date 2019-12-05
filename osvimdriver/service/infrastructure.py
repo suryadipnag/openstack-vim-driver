@@ -31,6 +31,16 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
         self.location_translator = location_translator
 
     def create_infrastructure(self, template, template_type, inputs, deployment_location):
+        openstack_location = self.location_translator.from_deployment_location(deployment_location)
+        heat_driver = openstack_location.heat_driver
+        if 'stack_id' in inputs:
+            stack_id = inputs.get('stack_id')
+            try:
+                ##Check for valid stack
+                heat_driver.get_stack(stack_id)
+            except StackNotFoundError as e:
+                raise InfrastructureNotFoundError(str(e)) from e
+            return CreateInfrastructureResponse(stack_id, stack_id)
         if template_type.upper() == TOSCA_TEMPLATE_TYPE.upper():
             try:
                 heat_template = self.heat_translator.generate_heat_template(template)
@@ -41,8 +51,6 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
             heat_template = template
         else:
             raise InvalidInfrastructureTemplateError('Cannot create using template of type \'{0}\'. Must be one of: {1}'.format(template_type, [TOSCA_TEMPLATE_TYPE, HEAT_TEMPLATE_TYPE]))
-        openstack_location = self.location_translator.from_deployment_location(deployment_location)
-        heat_driver = openstack_location.heat_driver
         heat_input_util = openstack_location.get_heat_input_util()
         heat_inputs = heat_input_util.filter_used_properties(heat_template, inputs)
         stack_name = 's' + uuid.uuid4().hex

@@ -27,6 +27,27 @@ class TestInfrastructureDriver(unittest.TestCase):
                                                                         '''
         self.mock_tosca_discover_service = MagicMock()
 
+    def test_create_infrastructure_with_stack_id_input(self):
+        deployment_location = {'name': 'mock_location'}
+        template = 'heat_template'
+        driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        result = driver.create_infrastructure(template, 'HEAT', {'stack_id': 'MY_STACK_ID'}, deployment_location)
+        self.assertIsInstance(result, CreateInfrastructureResponse)
+        self.assertEqual(result.infrastructure_id, 'MY_STACK_ID')
+        self.assertEqual(result.request_id, 'MY_STACK_ID')
+        self.mock_heat_translator.generate_heat_template.assert_not_called()
+        self.mock_location_translator.from_deployment_location.assert_called_once_with(deployment_location)
+        self.mock_heat_driver.get_stack.assert_called_once_with('MY_STACK_ID')
+
+    def test_create_infrastructure_with_not_found_stack_id(self):
+        self.mock_heat_driver.get_stack.side_effect = StackNotFoundError('Existing stack not found')
+        deployment_location = {'name': 'mock_location'}
+        template = 'heat_template'
+        driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        with self.assertRaises(InfrastructureNotFoundError) as context:
+            driver.create_infrastructure(template, 'HEAT', {'stack_id': 'MY_STACK_ID'}, deployment_location)
+        self.assertEqual(str(context.exception), 'Existing stack not found')
+
     def test_create_infrastructure(self):
         self.mock_heat_driver.create_stack.return_value = '1'
         deployment_location = {'name': 'mock_location'}
