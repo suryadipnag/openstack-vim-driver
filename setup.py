@@ -25,8 +25,8 @@ setup(
         'python-novaclient>=13.0.0,<14.0.0',
         'tosca-parser @ git+https://github.com/accanto-systems/tosca-parser.git@accanto',
         'heat-translator @ git+https://github.com/accanto-systems/heat-translator.git@accanto',
-        'uwsgi>=2.0.18',
-        'gunicorn>=19.9.0'
+        'uwsgi>=2.0.18,<3.0',
+        'gunicorn>=19.9.0,<20.0'
     ],
     entry_points='''
         [console_scripts]
