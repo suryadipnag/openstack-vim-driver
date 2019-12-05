@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.4.1](https://github.com/accanto-systems/openstack-vim-driver/tree/0.4.1) (2019-12-05)
+[Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.4.0...0.4.1)
+
+**Fixed bugs:**
+
+- Check if stack_id is not None [\#24](https://github.com/accanto-systems/openstack-vim-driver/issues/24)
+
 ## [0.4.0](https://github.com/accanto-systems/openstack-vim-driver/tree/0.4.0) (2019-12-05)
 [Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.3.0...0.4.0)
 
