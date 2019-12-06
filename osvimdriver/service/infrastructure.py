@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 OS_STACK_STATUS_CREATE_IN_PROGRESS = 'CREATE_IN_PROGRESS'
 OS_STACK_STATUS_CREATE_COMPLETE = 'CREATE_COMPLETE'
 OS_STACK_STATUS_CREATE_FAILED = 'CREATE_FAILED'
+OS_STACK_STATUS_ADOPT_IN_PROGRESS = 'ADOPT_IN_PROGRESS'
+OS_STACK_STATUS_ADOPT_COMPLETE = 'ADOPT_COMPLETE'
+OS_STACK_STATUS_ADOPT_FAILED = 'ADOPT_FAILED'
 OS_STACK_STATUS_DELETE_IN_PROGRESS = 'DELETE_IN_PROGRESS'
 OS_STACK_STATUS_DELETE_COMPLETE = 'DELETE_COMPLETE'
 OS_STACK_STATUS_DELETE_FAILED = 'DELETE_FAILED'
@@ -35,7 +38,7 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
         heat_driver = openstack_location.heat_driver
         if 'stack_id' in inputs:
             stack_id = inputs.get('stack_id')
-            if stack_id != None and len(stack_id.strip())!=0:
+            if stack_id != None and len(stack_id.strip())!=0 and stack_id.strip() != "0":
                 try:
                     ##Check for valid stack
                     heat_driver.get_stack(stack_id.strip())
@@ -95,13 +98,13 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
         infrastructure_id = stack.get('id')
         stack_status = stack.get('stack_status', None)
         failure_details = None
-        if stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_DELETE_IN_PROGRESS]:
+        if stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_DELETE_IN_PROGRESS, OS_STACK_STATUS_ADOPT_IN_PROGRESS]:
             logger.debug('Stack %s has stack_status %s, setting status in response to %s', infrastructure_id, stack_status, STATUS_IN_PROGRESS)
             status = STATUS_IN_PROGRESS
-        elif stack_status in [OS_STACK_STATUS_CREATE_COMPLETE, OS_STACK_STATUS_DELETE_COMPLETE]:
+        elif stack_status in [OS_STACK_STATUS_CREATE_COMPLETE, OS_STACK_STATUS_DELETE_COMPLETE, OS_STACK_STATUS_ADOPT_COMPLETE]:
             logger.debug('Stack %s has stack_status %s, setting status in response to %s', infrastructure_id, stack_status, STATUS_COMPLETE)
             status = STATUS_COMPLETE
-        elif stack_status in [OS_STACK_STATUS_CREATE_FAILED, OS_STACK_STATUS_DELETE_FAILED]:
+        elif stack_status in [OS_STACK_STATUS_CREATE_FAILED, OS_STACK_STATUS_DELETE_FAILED, OS_STACK_STATUS_ADOPT_FAILED]:
             logger.debug('Stack %s has stack_status %s, setting status in response to %s', infrastructure_id, stack_status, STATUS_FAILED)
             status = STATUS_FAILED
             description = stack.get('stack_status_reason', None)
