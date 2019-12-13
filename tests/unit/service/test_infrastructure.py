@@ -7,7 +7,7 @@ from osvimdriver.service.tosca import ToscaValidationError
 from osvimdriver.tosca.discover import DiscoveryResult, NotDiscoveredError
 from osvimdriver.openstack.heat.driver import StackNotFoundError
 from tests.unit.testutils.constants import TOSCA_TEMPLATES_PATH, TOSCA_HELLO_WORLD_FILE
-
+from ignition.utils.propvaluemap import PropValueMap
 
 class TestInfrastructureDriver(unittest.TestCase):
 
@@ -31,7 +31,7 @@ class TestInfrastructureDriver(unittest.TestCase):
         deployment_location = {'name': 'mock_location'}
         template = 'heat_template'
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
-        result = driver.create_infrastructure(template, 'HEAT', {'stack_id': 'MY_STACK_ID'}, deployment_location)
+        result = driver.create_infrastructure(template, 'HEAT', PropValueMap({'stack_id': {'type': 'string', 'value': 'MY_STACK_ID'}}), deployment_location)
         self.assertIsInstance(result, CreateInfrastructureResponse)
         self.assertEqual(result.infrastructure_id, 'MY_STACK_ID')
         self.assertEqual(result.request_id, 'MY_STACK_ID')
@@ -45,7 +45,7 @@ class TestInfrastructureDriver(unittest.TestCase):
         template = 'heat_template'
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         with self.assertRaises(InfrastructureNotFoundError) as context:
-            driver.create_infrastructure(template, 'HEAT', {'stack_id': 'MY_STACK_ID'}, deployment_location)
+            driver.create_infrastructure(template, 'HEAT', PropValueMap({'stack_id': {'type': 'string', 'value': 'MY_STACK_ID'}}), deployment_location)
         self.assertEqual(str(context.exception), 'Existing stack not found')
 
     def test_create_infrastructure_with_stack_id_as_none(self):
@@ -53,7 +53,7 @@ class TestInfrastructureDriver(unittest.TestCase):
         deployment_location = {'name': 'mock_location'}
         template = 'tosca_template'
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
-        result = driver.create_infrastructure(template, 'TOSCA', {'stack_id': None}, deployment_location)
+        result = driver.create_infrastructure(template, 'TOSCA', PropValueMap({'stack_id': {'type': 'string', 'value': None}}), deployment_location)
         self.assertIsInstance(result, CreateInfrastructureResponse)
         self.assertEqual(result.infrastructure_id, '1')
         self.assertEqual(result.request_id, '1')
@@ -67,7 +67,7 @@ class TestInfrastructureDriver(unittest.TestCase):
         deployment_location = {'name': 'mock_location'}
         template = 'tosca_template'
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
-        result = driver.create_infrastructure(template, 'TOSCA', {'stack_id': ' '}, deployment_location)
+        result = driver.create_infrastructure(template, 'TOSCA', PropValueMap({'stack_id': {'type': 'string', 'value': ' '}}), deployment_location)
         self.assertIsInstance(result, CreateInfrastructureResponse)
         self.assertEqual(result.infrastructure_id, '1')
         self.assertEqual(result.request_id, '1')
@@ -81,7 +81,7 @@ class TestInfrastructureDriver(unittest.TestCase):
         deployment_location = {'name': 'mock_location'}
         template = 'tosca_template'
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
-        result = driver.create_infrastructure(template, 'TOSCA', {'propA': 'valueA', 'propB': 'valueB'}, deployment_location)
+        result = driver.create_infrastructure(template, 'TOSCA', PropValueMap({'propA': {'type': 'string', 'value': 'valueA'}, 'propB': {'type': 'string', 'value': 'valueB'}}) , deployment_location)
         self.assertIsInstance(result, CreateInfrastructureResponse)
         self.assertEqual(result.infrastructure_id, '1')
         self.assertEqual(result.request_id, '1')
@@ -94,7 +94,7 @@ class TestInfrastructureDriver(unittest.TestCase):
         deployment_location = {'name': 'mock_location'}
         template = 'heat_template'
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
-        result = driver.create_infrastructure(template, 'HEAT', {'propA': 'valueA', 'propB': 'valueB'}, deployment_location)
+        result = driver.create_infrastructure(template, 'HEAT', PropValueMap({'propA': {'type': 'string', 'value': 'valueA'}, 'propB': {'type': 'string', 'value': 'valueB'}}), deployment_location)
         self.assertIsInstance(result, CreateInfrastructureResponse)
         self.assertEqual(result.infrastructure_id, '1')
         self.assertEqual(result.request_id, '1')
@@ -108,7 +108,7 @@ class TestInfrastructureDriver(unittest.TestCase):
         self.mock_heat_translator.generate_heat_template.side_effect = ToscaValidationError('Validation error')
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         with self.assertRaises(InvalidInfrastructureTemplateError) as context:
-            driver.create_infrastructure(template, 'TOSCA', {'propA': 'valueA', 'propB': 'valueB'}, deployment_location)
+            driver.create_infrastructure(template, 'TOSCA', PropValueMap({'propA': {'type': 'string', 'value': 'valueA'}, 'propB': {'type': 'string', 'value': 'valueB'}}), deployment_location)
         self.assertEqual(str(context.exception), 'Validation error')
 
     def test_create_infrastructure_with_invalid_template_type_throws_error(self):
@@ -116,7 +116,7 @@ class TestInfrastructureDriver(unittest.TestCase):
         template = 'tosca_template'
         driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         with self.assertRaises(InvalidInfrastructureTemplateError) as context:
-            driver.create_infrastructure(template, 'YAML', {'propA': 'valueA', 'propB': 'valueB'}, deployment_location)
+            driver.create_infrastructure(template, 'YAML', PropValueMap({'propA': {'type': 'string', 'value': 'valueA'}, 'propB': {'type': 'string', 'value': 'valueB'}}), deployment_location)
         self.assertEqual(str(context.exception), 'Cannot create using template of type \'YAML\'. Must be one of: [\'TOSCA\', \'HEAT\']')
 
     def test_delete_infrastructure(self):
