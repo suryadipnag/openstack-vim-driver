@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.5.0](https://github.com/accanto-systems/openstack-vim-driver/tree/0.5.0) (2019-12-13)
+[Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.4.2...0.5.0)
+
+**Maintenaince Tasks:**
+
+- Upgrade ignition framework version to 0.6.2 [\#25](https://github.com/accanto-systems/openstack-vim-driver/issues/25)
+
 ## [0.4.2](https://github.com/accanto-systems/openstack-vim-driver/tree/0.4.2) (2019-12-09)
 [Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.4.1...0.4.2)
 
