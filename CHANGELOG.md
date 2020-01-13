@@ -1,5 +1,16 @@
 # Change Log
 
+## [0.6.0](https://github.com/accanto-systems/openstack-vim-driver/tree/0.6.0) (2020-01-13)
+[Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.5.0...0.6.0)
+
+**Implemented enhancements:**
+
+- Update InfrastructureDriver to accept and make use of systemProperties [\#27](https://github.com/accanto-systems/openstack-vim-driver/issues/27)
+
+**Maintenaince Tasks:**
+
+- As part of [\#27](https://github.com/accanto-systems/openstack-vim-driver/issues/27), the Ignition version used by this driver has been updated to v0.7.0
+
 ## [0.5.0](https://github.com/accanto-systems/openstack-vim-driver/tree/0.5.0) (2019-12-13)
 [Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.4.2...0.5.0)
 
