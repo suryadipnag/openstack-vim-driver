@@ -43,6 +43,30 @@ parameters:
     type: string
 ```
 
+In addition, the `systemProperties` sent by Brent to the driver may be referenced using the property name prefixed with `system_` (to avoid collision with properties using the same names as a system property). For example: `system_resourceId` can be used to reference ID of the Resource and `system_resourceName` can be used to reference the name of the Resource.
+
+
+**TOSCA:**
+
+```
+topology_template:
+  inputs:
+    system_resourceId:
+      type: string
+    system_resourceName:
+      type: string
+```
+
+**HEAT:**
+
+```
+parameters:
+  system_resourceId:
+    type: string
+  system_resourceName:
+    type: string
+```
+
 # Create Outputs
 
 All outputs from the TOSCA or HEAT template will be passed back by the Openstack VIM driver after creating the infrastructure. Brent will handle matching the outputs with any properties of the same name in a descriptor. 
