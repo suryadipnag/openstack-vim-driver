@@ -65,7 +65,7 @@ class TestStackNameCreator(unittest.TestCase):
         self.assertEqual(len(name), 255)
         self.assertEqual(name, 's{0}.{1}'.format(expected_Ones, uid))
 
-    def test_create_removes_special_charts(self):
+    def test_create_removes_special_chars(self):
         creator = StackNameCreator()
         uid = str(uuid.uuid4())
         str_with_special_chars = 'A$ %!--__b.c#@'
