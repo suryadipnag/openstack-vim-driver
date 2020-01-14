@@ -47,3 +47,18 @@ spec:
       - name: config
         configMap:
           name: os-vim-driver
+{{- if .Values.app.autoscaler.enabled }}
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: os-vim-driver
+spec:
+  maxReplicas: {{ .Values.app.autoscaler.maxReplicas }}
+  minReplicas: {{ .Values.app.autoscaler.minReplicas }}
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: os-vim-driver
+  targetCPUUtilizationPercentage: {{ .Values.app.autoscaler.targetCPUUtilizationPercentage }}
+{{- end }}
