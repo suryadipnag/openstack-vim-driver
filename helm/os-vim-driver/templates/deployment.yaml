@@ -32,8 +32,15 @@ spec:
             # run as ovd
             runAsUser: 100
           ports:
+          {{- if .Values.app.config.security.ssl.enabled }}
+          - containerPort: 8392
+            protocol: TCP
+            name: https
+          {{- else }}
           - containerPort: 8292
             protocol: TCP
+            name: http
+          {{- end }}
           envFrom:
           - configMapRef:
               name: os-vim-driver-env
@@ -43,7 +50,16 @@ spec:
           - name: config
             mountPath: /var/ovd/ovd_config.yml
             subPath: ovd_config.yml
+          {{- if and .Values.app.config.security.ssl.enabled .Values.app.config.security.ssl.secret.name }}
+          - name: {{ .Values.app.config.security.ssl.secret.name }}
+            mountPath: /var/ovd/certs
+          {{- end }}
       volumes:
       - name: config
         configMap:
           name: os-vim-driver
+      {{- if and .Values.app.config.security.ssl.enabled .Values.app.config.security.ssl.secret.name }}
+      - name: {{ .Values.app.config.security.ssl.secret.name }}
+        secret:
+          secretName: {{ .Values.app.config.security.ssl.secret.name }}
+      {{- end }}

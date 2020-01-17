@@ -7,6 +7,15 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
+{{- if .Values.app.config.security.ssl.enabled }}
+  - port: 8392
+    targetPort: 8392
+{{- if eq .Values.service.type "NodePort" }}
+    nodePort: {{ .Values.service.nodePort }}
+{{- end }}
+    protocol: TCP
+    name: https
+{{- else }}
   - port: 8292
     targetPort: 8292
 {{- if eq .Values.service.type "NodePort" }}
@@ -14,5 +23,6 @@ spec:
 {{- end }}
     protocol: TCP
     name: http
+{{- end }}
   selector:
     app: os-vim-driver
