@@ -17,10 +17,11 @@ RUN addgroup -S ovd \
  && adduser -S ovd -G ovd -u 100 \
  && mkdir -p /var/ovd \
  && chown -R ovd:ovd /var/ovd \
- && apk add --no-cache bash \
+ && apk add --no-cache bash binutils libc-dev \
  # These packages need to be installed so that we can install the Python dependencies.
  # We make this virtual so that we can remove them later
  && apk add --no-cache --virtual .build-deps gcc musl-dev libffi-dev openssl-dev python3-dev make git \
+ && for i in /whls/ignition*.whl; do if [ "$i" != "/whls/ignition*.whl" ]; then pip install --no-warn-script-location --user "$i"; fi done \
  && for i in /whls/*.whl; do pip install "$i"; done \
  && apk del .build-deps gcc musl-dev libffi-dev openssl-dev python3-dev make git
 

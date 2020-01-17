@@ -1,23 +1,50 @@
 import uuid
 import logging
+import re
 from ignition.service.framework import Service, Capability, interface
 from ignition.service.infrastructure import InfrastructureDriverCapability, InfrastructureNotFoundError, InvalidInfrastructureTemplateError
 from ignition.model.infrastructure import CreateInfrastructureResponse, DeleteInfrastructureResponse, FindInfrastructureResponse, FindInfrastructureResult, InfrastructureTask, STATUS_IN_PROGRESS, STATUS_COMPLETE, STATUS_FAILED, STATUS_UNKNOWN
 from ignition.model.failure import FailureDetails, FAILURE_CODE_INFRASTRUCTURE_ERROR
 from osvimdriver.service.tosca import ToscaValidationError, NotDiscoveredError
 from osvimdriver.openstack.heat.driver import StackNotFoundError
+from ignition.utils.propvaluemap import PropValueMap
 
 logger = logging.getLogger(__name__)
 
 OS_STACK_STATUS_CREATE_IN_PROGRESS = 'CREATE_IN_PROGRESS'
 OS_STACK_STATUS_CREATE_COMPLETE = 'CREATE_COMPLETE'
 OS_STACK_STATUS_CREATE_FAILED = 'CREATE_FAILED'
+OS_STACK_STATUS_ADOPT_IN_PROGRESS = 'ADOPT_IN_PROGRESS'
+OS_STACK_STATUS_ADOPT_COMPLETE = 'ADOPT_COMPLETE'
+OS_STACK_STATUS_ADOPT_FAILED = 'ADOPT_FAILED'
 OS_STACK_STATUS_DELETE_IN_PROGRESS = 'DELETE_IN_PROGRESS'
 OS_STACK_STATUS_DELETE_COMPLETE = 'DELETE_COMPLETE'
 OS_STACK_STATUS_DELETE_FAILED = 'DELETE_FAILED'
 
 TOSCA_TEMPLATE_TYPE = 'TOSCA'
 HEAT_TEMPLATE_TYPE = 'HEAT'
+
+class StackNameCreator:
+
+    def create(self, resource_id, resource_name):
+        potential_name = '{0}.{1}'.format(resource_name, resource_id)
+        needs_starting_letter = not potential_name[0].isalpha()
+        potential_name = re.sub('[^A-Za-z0-9_.-]+', '', potential_name)
+        max_size = 254 if needs_starting_letter else 255
+        while len(potential_name)>max_size:
+            potential_name = potential_name[1:]
+        if needs_starting_letter:
+            potential_name = 's{0}'.format(potential_name)
+        return potential_name
+
+class PropertiesMerger:
+
+    def merge(self, properties, system_properties):
+        new_props = {k:v for k,v in properties.items_with_types()}
+        for k, v in system_properties.items_with_types():
+            new_key = 'system_{0}'.format(k)
+            new_props[new_key] = v
+        return PropValueMap(new_props)
 
 class InfrastructureDriver(Service, InfrastructureDriverCapability):
 
@@ -29,8 +56,21 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
             raise ValueError('tosca_discovery_service argument not provided')
         self.tosca_discovery_service = kwargs.get('tosca_discovery_service')
         self.location_translator = location_translator
-
-    def create_infrastructure(self, template, template_type, inputs, deployment_location):
+        self.stack_name_creator = StackNameCreator()
+        self.props_merger = PropertiesMerger()
+ 
+    def create_infrastructure(self, template, template_type, system_properties, properties, deployment_location):
+        openstack_location = self.location_translator.from_deployment_location(deployment_location)
+        heat_driver = openstack_location.heat_driver
+        if 'stack_id' in properties:
+            stack_id = properties.get('stack_id')
+            if stack_id != None and len(stack_id.strip())!=0 and stack_id.strip() != "0":
+                try:
+                    ##Check for valid stack
+                    heat_driver.get_stack(stack_id.strip())
+                except StackNotFoundError as e:
+                    raise InfrastructureNotFoundError(str(e)) from e
+                return CreateInfrastructureResponse(stack_id, stack_id)
         if template_type.upper() == TOSCA_TEMPLATE_TYPE.upper():
             try:
                 heat_template = self.heat_translator.generate_heat_template(template)
@@ -41,11 +81,13 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
             heat_template = template
         else:
             raise InvalidInfrastructureTemplateError('Cannot create using template of type \'{0}\'. Must be one of: {1}'.format(template_type, [TOSCA_TEMPLATE_TYPE, HEAT_TEMPLATE_TYPE]))
-        openstack_location = self.location_translator.from_deployment_location(deployment_location)
-        heat_driver = openstack_location.heat_driver
         heat_input_util = openstack_location.get_heat_input_util()
-        heat_inputs = heat_input_util.filter_used_properties(heat_template, inputs)
-        stack_name = 's' + uuid.uuid4().hex
+        input_props = self.props_merger.merge(properties, system_properties)
+        heat_inputs = heat_input_util.filter_used_properties(heat_template, input_props)
+        if 'resourceId' in system_properties and 'resourceName' in system_properties:
+            stack_name = self.stack_name_creator.create(system_properties['resourceId'], system_properties['resourceName'])
+        else:
+            stack_name = 's' + str(uuid.uuid4())
         stack_id = heat_driver.create_stack(stack_name, heat_template, heat_inputs)
         return CreateInfrastructureResponse(stack_id, stack_id)
 
@@ -86,13 +128,13 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
         infrastructure_id = stack.get('id')
         stack_status = stack.get('stack_status', None)
         failure_details = None
-        if stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_DELETE_IN_PROGRESS]:
+        if stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_DELETE_IN_PROGRESS, OS_STACK_STATUS_ADOPT_IN_PROGRESS]:
             logger.debug('Stack %s has stack_status %s, setting status in response to %s', infrastructure_id, stack_status, STATUS_IN_PROGRESS)
             status = STATUS_IN_PROGRESS
-        elif stack_status in [OS_STACK_STATUS_CREATE_COMPLETE, OS_STACK_STATUS_DELETE_COMPLETE]:
+        elif stack_status in [OS_STACK_STATUS_CREATE_COMPLETE, OS_STACK_STATUS_DELETE_COMPLETE, OS_STACK_STATUS_ADOPT_COMPLETE]:
             logger.debug('Stack %s has stack_status %s, setting status in response to %s', infrastructure_id, stack_status, STATUS_COMPLETE)
             status = STATUS_COMPLETE
-        elif stack_status in [OS_STACK_STATUS_CREATE_FAILED, OS_STACK_STATUS_DELETE_FAILED]:
+        elif stack_status in [OS_STACK_STATUS_CREATE_FAILED, OS_STACK_STATUS_DELETE_FAILED, OS_STACK_STATUS_ADOPT_FAILED]:
             logger.debug('Stack %s has stack_status %s, setting status in response to %s', infrastructure_id, stack_status, STATUS_FAILED)
             status = STATUS_FAILED
             description = stack.get('stack_status_reason', None)

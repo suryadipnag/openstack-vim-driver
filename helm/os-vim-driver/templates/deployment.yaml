@@ -45,7 +45,7 @@ spec:
           - configMapRef:
               name: os-vim-driver-env
           resources:
-{{ toYaml .Values.app.resources | indent 12 }}   
+{{ toYaml .Values.app.resources | indent 12 }}
           volumeMounts:
           - name: config
             mountPath: /var/ovd/ovd_config.yml
@@ -63,3 +63,18 @@ spec:
         secret:
           secretName: {{ .Values.app.config.security.ssl.secret.name }}
       {{- end }}
+{{- if .Values.app.autoscaler.enabled }}
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: os-vim-driver
+spec:
+  maxReplicas: {{ .Values.app.autoscaler.maxReplicas }}
+  minReplicas: {{ .Values.app.autoscaler.minReplicas }}
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: os-vim-driver
+  targetCPUUtilizationPercentage: {{ .Values.app.autoscaler.targetCPUUtilizationPercentage }}
+{{- end }}
