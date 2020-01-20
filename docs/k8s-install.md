@@ -46,6 +46,8 @@ app:
         connection_address: "myhost:myport"
 ```
 
+The driver runs with SSL enabled by default. The installation will generate a self-signed certificate and key by default, adding them to the Kubernetes secret "ovd-tls". To use a custom certificate and key in your own secret, override the properties under "apps.config.security.ssl.secret".
+
 You will reference the custom-values.yml file when installing the chart with Helm.
 
 ## Install
@@ -60,4 +62,4 @@ helm install os-vim-driver-<version>.tgz --name os-vim-driver -f custom-values.y
 
 You can confirm the driver is working by accessing the Swagger UI included to render the API definitions. 
 
-Access the UI at `http://your_host:31681/api/infrastructure/ui` e.g. [`http://localhost:31681/api/infrastructure/ui`](http://localhost:31681/api/infrastructure/ui)
+Access the UI at `https://your_host:31681/api/infrastructure/ui` e.g. [`http://localhost:31681/api/infrastructure/ui`](http://localhost:31681/api/infrastructure/ui)
