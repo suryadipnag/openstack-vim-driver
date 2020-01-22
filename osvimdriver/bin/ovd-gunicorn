@@ -1,3 +1,7 @@
 #!/usr/bin/env bash
 
-gunicorn -w $NUM_PROCESSES -b :$DRIVER_PORT "osvimdriver:create_wsgi_app()"
+if [[ $SSL_ENABLED == "True" ]]; then
+    SSL="--certfile /var/ovd/certs/tls.crt --keyfile /var/ovd/certs/tls.key"
+fi
+
+gunicorn -w $NUM_PROCESSES -b :$DRIVER_PORT $SSL "osvimdriver:create_wsgi_app()"

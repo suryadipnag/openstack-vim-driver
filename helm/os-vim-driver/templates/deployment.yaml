@@ -34,19 +34,29 @@ spec:
           ports:
           - containerPort: 8292
             protocol: TCP
+            name: http
           envFrom:
           - configMapRef:
               name: os-vim-driver-env
           resources:
-{{ toYaml .Values.app.resources | indent 12 }}   
+{{ toYaml .Values.app.resources | indent 12 }}
           volumeMounts:
           - name: config
             mountPath: /var/ovd/ovd_config.yml
             subPath: ovd_config.yml
+          {{- if and .Values.app.config.security.ssl.enabled .Values.app.config.security.ssl.secret.name }}
+          - name: {{ .Values.app.config.security.ssl.secret.name }}
+            mountPath: /var/ovd/certs
+          {{- end }}
       volumes:
       - name: config
         configMap:
           name: os-vim-driver
+      {{- if and .Values.app.config.security.ssl.enabled .Values.app.config.security.ssl.secret.name }}
+      - name: {{ .Values.app.config.security.ssl.secret.name }}
+        secret:
+          secretName: {{ .Values.app.config.security.ssl.secret.name }}
+      {{- end }}
 {{- if .Values.app.autoscaler.enabled }}
 ---
 apiVersion: autoscaling/v1

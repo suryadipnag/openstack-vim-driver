@@ -44,7 +44,18 @@ app:
       messaging:
         # Kafka connection url
         connection_address: foundation-kafka:9092
-  
+
+    security:
+      ssl:
+        enabled: True
+        secret:
+          ## Name of the secret containing the SSL certificate for the non-host based access (the CN of the certificate should match commonName)
+          name: ovd-tls
+          ## If True, the Helm chart installation will generate a new SSL key with a self-signed certificate
+          generate: True
+          ## The Common Name used for the SSL certificate (do not change this)
+          commonName: os-vim-driver
+
   ## Affinity for pod assignment
   ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
   affinity:
