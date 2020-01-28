@@ -55,7 +55,19 @@ app:
           generate: True
           ## The Common Name used for the SSL certificate (do not change this)
           commonName: os-vim-driver
-
+  
+  ## Probe configuration for checking Application availability
+  livenessProbe:
+    enabled: true
+    failureThreshold: 3
+    initialDelaySeconds: 10
+    periodSeconds: 30
+  readinessProbe:
+    enabled: true
+    failureThreshold: 3
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    
   ## Affinity for pod assignment
   ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
   affinity:
