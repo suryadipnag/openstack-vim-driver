@@ -8,7 +8,6 @@
 - Add liveness and readiness probe to helm chart [\#33](https://github.com/accanto-systems/openstack-vim-driver/issues/33)
 - Add SSL support [\#31](https://github.com/accanto-systems/openstack-vim-driver/issues/31)
 - Autoscaling on CPU usage [\#29](https://github.com/accanto-systems/openstack-vim-driver/issues/29)
-- Update InfrastructureDriver to accept and make use of systemProperties [\#27](https://github.com/accanto-systems/openstack-vim-driver/issues/27)
 
 **Dependencies:**
 
