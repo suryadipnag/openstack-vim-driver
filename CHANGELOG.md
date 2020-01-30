@@ -1,5 +1,19 @@
 # Change Log
 
+## [0.7.0](https://github.com/accanto-systems/openstack-vim-driver/tree/0.7.0) (2020-01-30)
+[Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.6.0...0.7.0)
+
+**Implemented enhancements:**
+
+- Add liveness and readiness probe to helm chart [\#33](https://github.com/accanto-systems/openstack-vim-driver/issues/33)
+- Add SSL support [\#31](https://github.com/accanto-systems/openstack-vim-driver/issues/31)
+- Autoscaling on CPU usage [\#29](https://github.com/accanto-systems/openstack-vim-driver/issues/29)
+- Update InfrastructureDriver to accept and make use of systemProperties [\#27](https://github.com/accanto-systems/openstack-vim-driver/issues/27)
+
+**Dependencies:**
+
+- Upgraded to Ignition 0.8.0
+
 ## [0.6.0](https://github.com/accanto-systems/openstack-vim-driver/tree/0.6.0) (2020-01-13)
 [Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.5.0...0.6.0)
 
