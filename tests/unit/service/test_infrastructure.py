@@ -227,9 +227,29 @@ class TestInfrastructureDriver(unittest.TestCase):
         result = driver.delete_infrastructure('1', deployment_location)
         self.assertIsInstance(result, DeleteInfrastructureResponse)
         self.assertEqual(result.infrastructure_id, '1')
-        self.assertEqual(result.request_id, '1')
+        self.assertEqual(result.request_id, 'Del-1')
         self.mock_location_translator.from_deployment_location.assert_called_once_with(deployment_location)
         self.mock_heat_driver.delete_stack.assert_called_once_with('1')
+
+    def test_delete_infrastructure_not_found(self):
+        deployment_location = {'name': 'mock_location'}
+        driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        self.mock_heat_driver.delete_stack.side_effect = StackNotFoundError('Not found')
+        result = driver.delete_infrastructure('1', deployment_location)
+        self.assertEqual(result.infrastructure_id, '1')
+        self.assertEqual(result.request_id, 'Del-1')
+    
+    def test_get_infrastructure_task_for_delete_not_found(self):
+        deployment_location = {'name': 'mock_location'}
+        driver = InfrastructureDriver(self.mock_location_translator, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        self.mock_heat_driver.get_stack.side_effect = StackNotFoundError('Not found')
+        infrastructure_task = driver.get_infrastructure_task('1', 'Del-1', deployment_location)
+        self.assertIsInstance(infrastructure_task, InfrastructureTask)
+        self.assertEqual(infrastructure_task.infrastructure_id, '1')
+        self.assertEqual(infrastructure_task.request_id, 'Del-1')
+        self.assertEqual(infrastructure_task.status, 'COMPLETE')
+        self.assertEqual(infrastructure_task.failure_details, None)
+        self.assertEqual(infrastructure_task.outputs, {})
 
     def test_get_infrastructure_tasks_requests_stack(self):
         deployment_location = {'name': 'mock_location'}

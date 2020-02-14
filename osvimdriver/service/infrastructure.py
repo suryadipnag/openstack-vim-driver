@@ -24,6 +24,8 @@ OS_STACK_STATUS_DELETE_FAILED = 'DELETE_FAILED'
 TOSCA_TEMPLATE_TYPE = 'TOSCA'
 HEAT_TEMPLATE_TYPE = 'HEAT'
 
+DELETE_REQUEST_PREFIX = 'Del-'
+
 class StackNameCreator:
 
     def create(self, resource_id, resource_name):
@@ -97,15 +99,25 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
         try:
             stack = heat_driver.get_stack(infrastructure_id)
         except StackNotFoundError as e:
-            raise InfrastructureNotFoundError(str(e)) from e
+            logger.debug('Stack not found: %s', infrastructure_id)
+            if request_id.startswith(DELETE_REQUEST_PREFIX):
+                logger.debug('Stack not found on delete request, returning task as successful: %s', infrastructure_id)
+                return InfrastructureTask(infrastructure_id, request_id, STATUS_COMPLETE, None, {})
+            else:
+                raise InfrastructureNotFoundError(str(e)) from e
         logger.debug('Retrieved stack: %s', stack)
-        return self.__build_infrastructure_response(stack)
+        return self.__build_infrastructure_response(stack, request_id)
 
     def delete_infrastructure(self, infrastructure_id, deployment_location):
         openstack_location = self.location_translator.from_deployment_location(deployment_location)
         heat_driver = openstack_location.heat_driver
-        heat_driver.delete_stack(infrastructure_id)
-        return DeleteInfrastructureResponse(infrastructure_id, infrastructure_id)
+        try:
+            heat_driver.delete_stack(infrastructure_id)
+        except StackNotFoundError as e:
+            # This is fine, as we want the stack to be deleted. 
+            # Return a response so the monitor calls get_infrastructure_task which will return the correct async result
+            pass
+        return DeleteInfrastructureResponse(infrastructure_id, DELETE_REQUEST_PREFIX+infrastructure_id)
 
     def find_infrastructure(self, template, template_type, instance_name, deployment_location):
         if template_type.upper() != TOSCA_TEMPLATE_TYPE.upper():
@@ -124,7 +136,7 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
             raise InvalidInfrastructureTemplateError(str(e)) from e
         return FindInfrastructureResponse(find_result)
 
-    def __build_infrastructure_response(self, stack):
+    def __build_infrastructure_response(self, stack, request_id):
         infrastructure_id = stack.get('id')
         stack_status = stack.get('stack_status', None)
         failure_details = None
@@ -151,7 +163,7 @@ class InfrastructureDriver(Service, InfrastructureDriverCapability):
             logger.debug('Stack %s last process is a create', infrastructure_id)
             outputs_from_stack = stack.get('outputs', [])
             outputs = self.__translate_outputs_to_values_dict(outputs_from_stack)
-        return InfrastructureTask(infrastructure_id, infrastructure_id, status, failure_details, outputs)
+        return InfrastructureTask(infrastructure_id, request_id, status, failure_details, outputs)
 
     def __translate_outputs_to_values_dict(self, stack_outputs):
         if len(stack_outputs) == 0:
