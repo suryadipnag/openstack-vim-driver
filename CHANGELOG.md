@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.7.1](https://github.com/accanto-systems/openstack-vim-driver/tree/0.7.1) (2020-02-17)
+[Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.7.0...0.7.1)
+
+**Fixed bugs:**
+
+- Delete Infrastructure on a Stack that does not exists fails with internal server error [\#36](https://github.com/accanto-systems/openstack-vim-driver/issues/36)
+
 ## [0.7.0](https://github.com/accanto-systems/openstack-vim-driver/tree/0.7.0) (2020-01-30)
 [Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.6.0...0.7.0)
 
