@@ -43,6 +43,52 @@ parameters:
     type: string
 ```
 
+## Keys
+
+A Resource descriptor can also include properties of type `key` to reference key pairs created as part of other Resource infrastructure or onboarded manually into Stratoss LM. 
+
+**Descriptor:**
+```
+properties:
+  my_key:
+    type: key
+```
+
+When a key property is used, the VIM driver has access to 3 components of the key pair: 
+
+- name of the key
+- private key
+- public key. 
+
+To reference the name of the key, use the property name from the descriptor, as you would for any non-key property. To reference the private key, use the property name and the suffix `_private`. To reference the public key, use the property name and the suffix `_public`:
+
+**TOSCA:**
+
+```
+topology_template:
+  inputs:
+    my_key:
+      type: string
+    my_key_private:
+      type: string
+    my_key_public:
+      type: string
+```
+
+**HEAT:**
+
+```
+parameters:
+  my_key:
+    type: string
+  my_key_private:
+    type: string
+  my_key_public:
+    type: string
+```
+
+## System Properties
+
 In addition, the `systemProperties` sent by Brent to the driver may be referenced using the property name prefixed with `system_` (to avoid collision with properties using the same names as a system property). For example: `system_resourceId` can be used to reference ID of the Resource and `system_resourceName` can be used to reference the name of the Resource.
 
 
