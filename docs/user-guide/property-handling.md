@@ -4,7 +4,7 @@ This section describes how properties are used as inputs and returned as outputs
 
 # Create Requests
 
-On a create request, the driver will be passed the values for this instance of the Resource for any properties specified on it's descriptor.
+On a create request, the driver will be passed the values for this instance of the Resource for any properties specified on its descriptor.
 
 The Openstack VIM driver allows any of these values to be referenced in a TOSCA or HEAT by passing them as inputs (parameters for HEAT). The value of any property will be set as the value of any input with the same name. 
 
@@ -125,7 +125,7 @@ properties:
     type: string
 ```
 
-With the following templates, all of the outputs will be returned and are usable in any later lifecycle transitions. However, Brent will match the value of output `prop_a` with the property from the descriptor with the same name, so it will return this value upto LM (making it's value visible in the LM UI).
+With the following templates, all of the outputs will be returned and are usable in any later lifecycle transitions. However, Brent will match the value of output `prop_a` with the property from the descriptor with the same name, so it will return this value up to LM (making it's value visible in the LM UI).
 
 **TOSCA:**
 

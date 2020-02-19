@@ -1,8 +1,8 @@
 # Openstack VIM Driver
 
-This driver implements the Stratoss&trade; Lifecycle Manager Brent Infrastructure APIs to allow infrastructure to be managed in Openstack.
+This driver implements the [Stratoss&trade; Lifecycle Manager](http://servicelifecyclemanager.com/2.1.0/) Brent Infrastructure APIs to allow infrastructure to be managed in Openstack.
 
-The driver has been written in Python3 and can be with the publicly available docker image and helm chart.
+The driver has been written in Python3 and can be installed with the publicly available docker image and helm chart.
 
 # Install
 

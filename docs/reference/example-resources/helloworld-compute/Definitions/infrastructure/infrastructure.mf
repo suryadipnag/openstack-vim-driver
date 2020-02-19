@@ -1,7 +1,0 @@
-templates:
-  - file: helloworld.yaml
-    template_type: TOSCA
-    infrastructure_type: Openstack
-  #- file: helloworld-heat.yaml
-  #  template_type: HEAT
-  #  infrastructure_type: Openstack

@@ -33,4 +33,4 @@ properties:
   dhcp_enabled:
     type: string
     read-only: true
-lifecycle: []
+lifecycle: {}

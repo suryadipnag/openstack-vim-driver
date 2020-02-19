@@ -8,18 +8,24 @@ properties:
     type: stirng
     description: name of image in Openstack to use for Compute instance
     default: xenial-server-cloudimg-amd64-disk1
-  flavor: 
+  flavor:
     type: string
     description: name of flavor in Openstack to use for Compute instance
     default: m1.small
   network:
     type: string
-    description: name of the network in Openstack the Compute instance should attach to
+    description: name of the network in Openstack the Compute instance should attach
+      to
     default: private
   private_ip:
     type: string
     description: IP of the Compute instance on the network
     read-only: true
-lifecycle: 
-- Create
-- Delete
+infrastructure:
+  Openstack:
+    template:
+      file: helloworld.yaml
+      template-type: TOSCA
+lifecycle:
+  Create: {}
+  Delete: {}
