@@ -29,6 +29,23 @@ class TestPropertiesMerger(unittest.TestCase):
             'system_propA': {'type': 'string', 'value': 'sysPropA'}
         }))
 
+    def test_merge_keys(self):
+        merger = PropertiesMerger()
+        result = merger.merge(
+            PropValueMap({
+                'propA': {'type': 'key', 'privateKey': 'private', 'publicKey': 'public', 'keyName': 'SomeKey'}, 
+                'propB': {'type': 'string', 'value': 'propB'}
+            }),
+            PropValueMap({
+                'propA': {'type': 'string', 'value': 'sysPropA'}
+            })
+        )
+        self.assertEqual(result, PropValueMap({
+            'propA': {'type': 'key', 'privateKey': 'private', 'publicKey': 'public', 'keyName': 'SomeKey'},
+            'propB': {'type': 'string', 'value': 'propB'},
+            'system_propA': {'type': 'string', 'value': 'sysPropA'}
+        }))
+
 class TestStackNameCreator(unittest.TestCase):
 
     def test_create(self):
