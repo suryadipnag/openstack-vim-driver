@@ -8,9 +8,9 @@ To complete the install you will need a Kubernetes cluster.
 
 You will also need a controller machine (can be one of the Kubernetes cluster nodes) to perform the installation from. This machine must have the Helm CLI tool installed and initialised with access to your cluster.
 
-## Install
+## Installation
 
-## Download Helm Chart
+### Download
 
 Download the Helm chart from the [releases](https://github.com/accanto-systems/openstack-vim-driver/releases) page to your machine.
 
@@ -18,7 +18,7 @@ Download the Helm chart from the [releases](https://github.com/accanto-systems/o
 wget https://github.com/accanto-systems/openstack-vim-driver/releases/download/<version>/os-vim-driver-<version>.tgz
 ```
 
-## Configuration
+### Configure
 
 Check out the configurable values of the chart with Helm:
 
@@ -50,7 +50,7 @@ The driver runs with SSL enabled by default. The installation will generate a se
 
 You will reference the custom-values.yml file when installing the chart with Helm.
 
-## Install
+### Install
 
 Install the chart using the Helm CLI, adding any custom values file if created.
 
@@ -58,7 +58,7 @@ Install the chart using the Helm CLI, adding any custom values file if created.
 helm install os-vim-driver-<version>.tgz --name os-vim-driver -f custom-values.yml
 ```
 
-## Confirm 
+### Confirm 
 
 You can confirm the driver is working by accessing the Swagger UI included to render the API definitions.
 
