@@ -48,13 +48,11 @@ In addition, you must set the user and password with one of the following combin
 The following example shows a full set of valid properties for an Openstack deployment location:
 
 ```
-"properties": {
-    "os_auth_project_name": "my-project",
-    "os_auth_project_domain_name": "default",
-    "os_auth_password": "secret",
-    "os_auth_username": "my-user",
-    "os_auth_user_domain_name": "default",
-    "os_auth_api": "identity/v3",
-    "os_api_url": "http://10.10.8.8"
-}
+"os_auth_project_name": "my-project",
+"os_auth_project_domain_name": "default",
+"os_auth_password": "secret",
+"os_auth_username": "my-user",
+"os_auth_user_domain_name": "default",
+"os_auth_api": "identity/v3",
+"os_api_url": "http://10.10.8.8"
 ```

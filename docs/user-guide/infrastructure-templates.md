@@ -1,15 +1,13 @@
 # Infrastructure Templates
 
-The API for create and find infrastructure requests specifies templates are passed to the driver to describe the infrastructure. These templates can be of any type supported by a driver.
-
-Currently the Openstack VIM driver supports two template types, however one of them is only usable when creating infrastructure:
+Infrastructure Templates are text files which describe infrastructure and can be of any type supported by this driver. Currently the Openstack VIM driver supports two template types, however one of them is only usable when creating infrastructure:
 
 | Template Type | Create Infrastructure | Find Infrastructure |
 | --- | --- | --- |
 | TOSCA | Y | Y |
 | HEAT | Y | N |
 
-Heat is generally easier to use as Tosca requires translation, so it's behaviour depends on whether the types used can be translated or not. 
+Heat is generally easier to use as Tosca requires translation, so it's behaviour depends on whether the types used can be translated or not. The API for create and find infrastructure requests specifies that templates are passed to the driver to describe the infrastructure.
 
 # Heat Support
 
@@ -24,7 +22,7 @@ The Openstack VIM driver can create any TOSCA types, from v1.0 of the [simple pr
 - the conversion support offered in the [heat translator](https://github.com/accanto-systems/heat-translator/tree/accanto) library used by this driver
 - additional types provided by this driver
 
-The following sections detail how particular types are implemented by this driver and details any limiations to using them.
+The following sections detail how particular types are implemented by this driver and details any limitations to using them.
 
 # Compute
 
@@ -64,7 +62,7 @@ The complete definition of `os.ext.nodes.Compute` can found at [Full Types Defin
 
 The TOSCA specification for `tosca.nodes.Compute` declares 4 attributes, however only `private_address` can currently be used with this driver. This will return the IP address of the server on the private network.
 
-Although the TOSCA specifications states all properties should be available as attributes, the translator being used by this driver currently does not support this.
+Although the TOSCA specification states all properties should be available as attributes, the translator being used by this driver currently does not support this.
 
 ### Host Capability
 
@@ -72,7 +70,7 @@ The properties of the `host` capability on a `tosca.nodes.Compute` are used to c
 
 Currently, the translator used by this driver only supports a pre-defined list of flavors and images:
 
-Flavour:
+Flavor:
 
 ```
 'm1.xlarge': {'mem_size': 16384, 'disk_size': 160, 'num_cpus': 8},
@@ -125,7 +123,7 @@ The following table details the supported properties when creating a network usi
 | physical_network | N         | -                                                                                                                |
 | dhcp_enabled     | Y         | Sets the `enable_dhcp` property on the subnet                                                                    |
 
-Although the TOSCA specifications states all properties should be available as attributes, the translator being used by this driver currently does not support this. This means it is not possible to use the `get_attribute` function to make use of their values elsewhere in the template.
+Although the TOSCA specification states all properties should be available as attributes, the translator being used by this driver currently does not support this. This means it is not possible to use the `get_attribute` function to make use of their values elsewhere in the template.
 
 ### Reference existing network on create
 
@@ -136,7 +134,7 @@ When creating infrastructure, the TOSCA template may reference an existing netwo
 
 ## Find
 
-When finding an existing/external network using the find infrastructure API, the rules are different to create. The driver will use the Neutron API directly to retrieve information about the network and subnet. As a result, more attributes are available. A custom extension named `os.ext.nodes.network.Network` is automatically added to all templates, which enables additional attributes to be retrieved as outputs from the template:
+When finding an existing/external network using the find infrastructure API, the rules are different to a Create. The driver will use the Neutron API directly to retrieve information about the network and subnet. As a result, more attributes are available. A custom extension named `os.ext.nodes.network.Network` is automatically added to all templates, which enables additional attributes to be retrieved as outputs from the template:
 
 - ip_version
 - cidr
@@ -162,7 +160,7 @@ It also supports the `floating_ip_address` attribute.
 
 # Port
 
-An extension type named `os.ext.nodes.network.Port` has been included which supports a `security_groups` property, so a port may be associated to security groups.
+An extension type named `os.ext.nodes.network.Port` has been included which supports a `security_groups` property so that a port may be associated to security groups.
 
 # Other Heat Types
 

@@ -6,7 +6,7 @@ This section details how to install the VIM driver into a Kubernetes environment
 
 To complete the install you will need a Kubernetes cluster. 
 
-You will also need to controller machine (can be one of the Kubernetes cluster nodes) to perform the installation from. This machine must have the Helm CLI tool installed and initialised with access to your cluster.
+You will also need a controller machine (can be one of the Kubernetes cluster nodes) to perform the installation from. This machine must have the Helm CLI tool installed and initialised with access to your cluster.
 
 ## Install
 
@@ -28,7 +28,7 @@ helm inspect values os-vim-driver-<version>.tgz
 
 The driver has a dependency on Kafka, which it uses to send response messages back to Brent. Therefore it must be installed with access to the same shared Kafka cluster as Brent. 
 
-By default, the driver will attempt to connect to Kafka with the address `foundation-kafka:9092`. This is suitable if the driver is being installed into the same namespace as an installation of Stratoss&trade; Lifecycle Manager.
+By default, the driver will attempt to connect to Kafka with the address `foundation-kafka:9092`. This is suitable if the driver is being installed into the same namespace as a standard installation of Stratoss&trade; Lifecycle Manager since its foundation services include Kafka.
 
 If you need to set a different address (or configure any of the other values of the Helm chart) you may do so by creating a custom values file.
 
@@ -60,6 +60,6 @@ helm install os-vim-driver-<version>.tgz --name os-vim-driver -f custom-values.y
 
 ## Confirm 
 
-You can confirm the driver is working by accessing the Swagger UI included to render the API definitions. 
+You can confirm the driver is working by accessing the Swagger UI included to render the API definitions.
 
 Access the UI at `https://your_host:31681/api/infrastructure/ui` e.g. [`http://localhost:31681/api/infrastructure/ui`](http://localhost:31681/api/infrastructure/ui)
