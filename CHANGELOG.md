@@ -11,6 +11,8 @@
 - Deployment Location properties format [\#35](https://github.com/accanto-systems/openstack-vim-driver/issues/35)
 - Ensure documentation correct for 1.0.0 [\#38](https://github.com/accanto-systems/openstack-vim-driver/issues/38)
 
+**Depdendencies:**
+- Upgraded to Ignition version 1.0.0
 
 ## [0.7.1](https://github.com/accanto-systems/openstack-vim-driver/tree/0.7.1) (2020-02-17)
 [Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.7.0...0.7.1)
