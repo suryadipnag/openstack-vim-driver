@@ -1,3 +1,6 @@
+import tempfile
+import os
+import shutil
 from keystoneauth1.identity import v3 as keystonev3
 from keystoneauth1 import session as keystonesession
 from osvimdriver.openstack.heat.driver import HeatDriver
@@ -8,7 +11,9 @@ AUTH_PROP_PREFIX = 'os_auth_'
 AUTH_ENABLED_PROP = 'os_auth_enabled'
 AUTH_API_PROP = 'os_auth_api'
 OS_URL_PROP = 'os_api_url'
-
+OS_CACERT_PROP = 'os_cacert'
+OS_CERT_PROP = 'os_cert'
+OS_KEY_PROP = 'os_key'
 
 class OpenstackPasswordAuth():
 
@@ -28,17 +33,34 @@ class OpenstackPasswordAuth():
 
 class OpenstackDeploymentLocation():
 
-    def __init__(self, name, api_url, auth):
+    def __init__(self, name, api_url, auth, ca_cert=None, client_cert=None, client_key=None):
         self.name = name
         self.__api_url = api_url
         self.__auth = auth
         self.__session = None
         self.__heat_driver = None
         self.__neutron_driver = None
+        self.__tmp_workspace = tempfile.mkdtemp()
+        self.__ca_cert = ca_cert
+        self.__client_cert = client_cert
+        self.__client_key = client_key
+        self.__ca_cert_path = os.path.join(self.__tmp_workspace, 'ca.cert') if ca_cert is not None else None
+        self.__client_cert_path = os.path.join(self.__tmp_workspace, 'client.cert') if client_cert is not None else None
+        self.__client_key_path = os.path.join(self.__tmp_workspace, 'client.key') if client_key is not None else None
 
     def create_session(self):
         auth_details = self.__auth.build_os_auth(self.__api_url) if self.__auth is not None else None
-        self.__session = keystonesession.Session(auth=auth_details)
+        self.__write_certs()
+        kwargs = {}
+        kwargs['auth'] = auth_details
+        if self.__ca_cert_path != None:
+            kwargs['verify'] = self.__ca_cert_path
+        if self.__client_cert_path != None:
+            if self.__client_key_path != None:
+                kwargs['cert'] = (self.__client_cert_path, self.__client_key_path)
+            else:
+                kwargs['cert'] = self.__client_cert_path
+        self.__session = keystonesession.Session(**kwargs)
         return self.__session
 
     def get_session(self):
@@ -60,6 +82,23 @@ class OpenstackDeploymentLocation():
         if self.__neutron_driver is None:
             self.__neutron_driver = NeutronDriver(self.get_session())
         return self.__neutron_driver
+
+    def close(self):
+        if os.path.exists(self.__tmp_workspace):
+            shutil.rmtree(self.__tmp_workspace)
+
+    def __write_certs(self):
+        if self.__ca_cert_path != None:
+            self.__write_if_needed(self.__ca_cert_path, self.__ca_cert)
+        if self.__client_cert_path != None:
+            self.__write_if_needed(self.__client_cert_path, self.__client_cert)
+        if self.__client_key_path != None:
+            self.__write_if_needed(self.__client_key_path, self.__client_key)
+
+    def __write_if_needed(self, path, content):
+        if not os.path.exists(path):
+            with open(path, 'w') as f:
+                f.write(content)
 
 
 class OpenstackDeploymentLocationTranslator():
@@ -94,4 +133,11 @@ class OpenstackDeploymentLocationTranslator():
             configured_auth = OpenstackPasswordAuth(auth_api, auth_properties)
         else:
             configured_auth = None
-        return OpenstackDeploymentLocation(dl_name, api_url, configured_auth)
+        ca_cert, client_cert, client_key = self.__gather_certs(dl_properties)
+        return OpenstackDeploymentLocation(dl_name, api_url, configured_auth, ca_cert=ca_cert, client_cert=client_cert, client_key=client_key)
+
+    def __gather_certs(self, dl_properties):
+        ca_cert = dl_properties.get(OS_CACERT_PROP, None)
+        client_cert = dl_properties.get(OS_CERT_PROP, None)
+        client_key = dl_properties.get(OS_KEY_PROP, None)
+        return (ca_cert, client_cert, client_key)
