@@ -1,6 +1,6 @@
 # Openstack VIM Driver
 
-This driver implements the [Stratoss&trade; Lifecycle Manager](http://servicelifecyclemanager.com/2.1.0/) Brent Infrastructure APIs to allow infrastructure to be managed in Openstack.
+This driver implements the [Stratoss&trade; Lifecycle Manager](http://servicelifecyclemanager.com/2.1.0/) Brent Resource Driver APIs to allow infrastructure to be managed in Openstack.
 
 The driver has been written in Python3 and can be installed with the publicly available docker image and helm chart.
 
@@ -10,9 +10,9 @@ The driver can installed on [Kubernetes](./k8s-install.md) using Helm.
 
 # User Guide
 
-The following sections explain how the VIM Driver works and the restrictions it places on the infrastructure templates used for Resources.
+The following sections explain how the driver works and the restrictions it places on the Resource package files and deployment locations.
 
-- [Infrastructure Templates](./user-guide/infrastructure-templates.md) - supported templates and types for infrastructure
+- [Resources](./user-guide/resources.md) - using Openstack based infrastructure in your Resource
 - [Property Handling](./user-guide/property-handling.md) - details how properties for a Resource are handled as inputs and outputs during requests
 - [Deployment Locations](./user-guide/deployment-locations.md) - details the properties expected by this driver on a valid deployment location
 - [Openstack Admin API](./user-guide/os-admin-api.md) - additional API available to check Openstack deployment locations are reachable from the driver

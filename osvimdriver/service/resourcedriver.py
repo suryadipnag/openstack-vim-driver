@@ -2,6 +2,7 @@ import uuid
 import logging
 import re
 from ignition.service.framework import Service, Capability, interface
+from ignition.service.config import ConfigurationPropertiesGroup
 from ignition.service.resourcedriver import ResourceDriverHandlerCapability, InfrastructureNotFoundError, InvalidDriverFilesError, ResourceDriverError, InvalidRequestError
 from ignition.model.references import FindReferenceResponse, FindReferenceResult
 from ignition.model.associated_topology import AssociatedTopology
@@ -30,8 +31,14 @@ REQUEST_ID_SEPARATOR = '::'
 CREATE_REQUEST_PREFIX = 'Create'
 DELETE_REQUEST_PREFIX = 'Delete'
 
-STACK_RESOURCE_TYPE = 'Openstack.Stack'
+STACK_RESOURCE_TYPE = 'Openstack'
 STACK_NAME = 'InfrastructureStack'
+
+class AdditionalResourceDriverProperties(ConfigurationPropertiesGroup, Service, Capability):
+
+    def __init__(self):
+        super().__init__('resource_driver')
+        self.keep_files = False
 
 class StackNameCreator:
 
@@ -64,27 +71,31 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         if 'tosca_discovery_service' not in kwargs:
             raise ValueError('tosca_discovery_service argument not provided')
         self.tosca_discovery_service = kwargs.get('tosca_discovery_service')
+        if 'resource_driver_config' not in kwargs:
+            raise ValueError('resource_driver_config argument not provided')
+        self.resource_driver_config = kwargs.get('resource_driver_config')
         self.location_translator = location_translator
         self.stack_name_creator = StackNameCreator()
         self.props_merger = PropertiesMerger()
     
-    def execute_lifecycle(self, lifecycle_name, driver_files, system_properties, resource_properties, request_properties, internal_resources, deployment_location):
+    def execute_lifecycle(self, lifecycle_name, driver_files, system_properties, resource_properties, request_properties, associated_topology, deployment_location):
         try:
             openstack_location = self.location_translator.from_deployment_location(deployment_location)
             if lifecycle_name.upper() == 'CREATE':
-                return self.__handle_create(driver_files, system_properties, resource_properties, request_properties, internal_resources, openstack_location)
+                return self.__handle_create(driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location)
             elif lifecycle_name.upper() == 'DELETE':
-                return self.__handle_delete(driver_files, system_properties, resource_properties, request_properties, internal_resources, openstack_location)
+                return self.__handle_delete(driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location)
             else:
                 raise InvalidRequestError(f'Openstack driver only supports Create and Delete transitions, not {lifecycle_name}')
         finally:
-            try:
-                logger.debug(f'Attempting to remove driver files at {driver_files.root_path}')
-                driver_files.remove_all()
-            except Exception as e:
-                logger.exception('Encountered an error whilst trying to clear out driver files directory {0}: {1}'.format(driver_files.root_path, str(e)))
+            if not self.resource_driver_config.keep_files:
+                try:
+                    logger.debug(f'Attempting to remove driver files at {driver_files.root_path}')
+                    driver_files.remove_all()
+                except Exception as e:
+                    logger.exception('Encountered an error whilst trying to clear out driver files directory {0}: {1}'.format(driver_files.root_path, str(e)))
 
-    def __handle_create(self, driver_files, system_properties, resource_properties, request_properties, internal_resources, openstack_location):
+    def __handle_create(self, driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location):
         heat_driver = openstack_location.heat_driver
         stack_id = None
         if 'stack_id' in resource_properties:
@@ -114,18 +125,18 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
                 stack_name = 's' + str(uuid.uuid4())
             stack_id = heat_driver.create_stack(stack_name, heat_template, heat_inputs)
         request_id = self.__build_request_id(CREATE_REQUEST_PREFIX, stack_id)
-        internal_resources = self.__build_internal_resources_response(stack_id)
-        return LifecycleExecuteResponse(request_id, internal_resources=internal_resources)
+        associated_topology = self.__build_associated_topology_response(stack_id)
+        return LifecycleExecuteResponse(request_id, associated_topology=associated_topology)
 
-    def __handle_delete(self, driver_files, system_properties, resource_properties, request_properties, internal_resources, openstack_location):
-        stack_resource_entry = internal_resources.get_by_name(STACK_NAME)
+    def __handle_delete(self, driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location):
+        stack_resource_entry = associated_topology.get(STACK_NAME)
         if stack_resource_entry is None:
             # There is no Stack associated to this Resource
             # This is fine, as we want the stack to be deleted. 
             # Return a response so the monitor calls get_lifecycle_execution which will return the correct async result
             request_id = self.__build_request_id(DELETE_REQUEST_PREFIX, 'no-stack')
         else:
-            stack_id = stack_resource_entry.identifier
+            stack_id = stack_resource_entry.element_id
             heat_driver = openstack_location.heat_driver
             try:
                 heat_driver.delete_stack(stack_id)
@@ -137,20 +148,28 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         return LifecycleExecuteResponse(request_id)
 
     def find_reference(self, instance_name, driver_files, deployment_location):
-        openstack_location = self.location_translator.from_deployment_location(deployment_location)
-        inputs = {
-            'instance_name': instance_name
-        }
-        template = self.__get_discover_template(driver_files)
-        find_result = None
         try:
-            discover_result = self.tosca_discovery_service.discover(template, openstack_location, inputs)
-            find_result = FindReferenceResult(discover_result.discover_id, discover_result.outputs)
-        except NotDiscoveredError as e:
-            pass  # Return empty result
-        except ToscaValidationError as e:
-            raise InvalidDriverFilesError(str(e)) from e
-        return FindReferenceResponse(find_result)
+            openstack_location = self.location_translator.from_deployment_location(deployment_location)
+            inputs = {
+                'instance_name': instance_name
+            }
+            template = self.__get_discover_template(driver_files)
+            find_result = None
+            try:
+                discover_result = self.tosca_discovery_service.discover(template, openstack_location, inputs)
+                find_result = FindReferenceResult(discover_result.discover_id, outputs=discover_result.outputs)
+            except NotDiscoveredError as e:
+                pass  # Return empty result
+            except ToscaValidationError as e:
+                raise InvalidDriverFilesError(str(e)) from e
+            return FindReferenceResponse(find_result)
+        finally:
+            if not self.resource_driver_config.keep_files:
+                try:
+                    logger.debug(f'Attempting to remove driver files at {driver_files.root_path}')
+                    driver_files.remove_all()
+                except Exception as e:
+                    logger.exception('Encountered an error whilst trying to clear out driver files directory {0}: {1}'.format(driver_files.root_path, str(e)))
 
     def __build_request_id(self, request_type, stack_id):
         request_id = request_type
@@ -169,10 +188,10 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         operation_id = split_parts[2]
         return (request_type, stack_id, operation_id)
 
-    def __build_internal_resources_response(self, stack_id):
-        internal_resources = AssociatedTopology()
-        internal_resources.add_entry(stack_id, STACK_NAME, STACK_RESOURCE_TYPE)
-        return internal_resources
+    def __build_associated_topology_response(self, stack_id):
+        associated_topology = AssociatedTopology()
+        associated_topology.add_entry(STACK_NAME, stack_id, STACK_RESOURCE_TYPE)
+        return associated_topology
 
     def __get_discover_template(self, driver_files):
         if driver_files.has_file('discover.yaml'):
@@ -241,7 +260,7 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
             failure_details = FailureDetails(FAILURE_CODE_INFRASTRUCTURE_ERROR, description)
             status_reason = stack.get('stack_status_reason', None)
         outputs = None
-        internal_resources = None
+        associated_topology = None
         if request_type == CREATE_REQUEST_PREFIX:
             outputs_from_stack = stack.get('outputs', [])
             outputs = self.__translate_outputs_to_values_dict(outputs_from_stack)

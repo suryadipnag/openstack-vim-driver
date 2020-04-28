@@ -3,7 +3,7 @@ import ignition.boot.api as ignition
 import osvimdriver.config as osvimdriverconfig
 import pathlib
 import os
-from osvimdriver.service.resourcedriver import ResourceDriverHandler
+from osvimdriver.service.resourcedriver import ResourceDriverHandler, AdditionalResourceDriverProperties
 from osvimdriver.openstack.environment import OpenstackDeploymentLocationTranslator
 from osvimdriver.service.tosca import ToscaParserCapability, ToscaHeatTranslatorCapability, ToscaParserService, ToscaHeatTranslatorService, ToscaTopologyDiscoveryService, ToscaTopologyDiscoveryCapability
 from osvimdriver.service.osadmin import OpenstackAdminApiConfigurator, OpenstackAdminServiceConfigurator, OpenstackAdminProperties
@@ -19,11 +19,13 @@ def create_app():
     # custom config file e.g. for K8s populated from Helm chart values
     app_builder.include_file_config_properties('/var/ovd/ovd_config.yml', required=False)
     app_builder.include_environment_config_properties('OVD_CONFIG', required=False)
+    app_builder.add_property_group(AdditionalResourceDriverProperties())
     app_builder.add_service(ToscaParserService)
     app_builder.add_service(ToscaTopologyDiscoveryService, tosca_parser_service=ToscaParserCapability)
     app_builder.add_service(ToscaHeatTranslatorService, tosca_parser_service=ToscaParserCapability)
     app_builder.add_service(ResourceDriverHandler, OpenstackDeploymentLocationTranslator(),
-                            heat_translator_service=ToscaHeatTranslatorCapability, tosca_discovery_service=ToscaTopologyDiscoveryCapability)
+                            heat_translator_service=ToscaHeatTranslatorCapability, tosca_discovery_service=ToscaTopologyDiscoveryCapability,
+                            resource_driver_config=AdditionalResourceDriverProperties)
 
     # Custom Property Group, Service and API
     app_builder.add_property_group(OpenstackAdminProperties())

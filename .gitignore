@@ -106,6 +106,7 @@ venv.bak/
 # VIM driver 
 Openstack_VIM_Driver_boot
 test_workspace/
+driver_files/
 
 # Docker whls
 docker/whls/
