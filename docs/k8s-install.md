@@ -1,6 +1,6 @@
 # Install to Kubernetes
 
-This section details how to install the VIM driver into a Kubernetes environment with Helm.
+This section details how to install the Openstack driver into a Kubernetes environment with Helm.
 
 ## Prerequisites
 
@@ -62,4 +62,4 @@ helm install os-vim-driver-<version>.tgz --name os-vim-driver -f custom-values.y
 
 You can confirm the driver is working by accessing the Swagger UI included to render the API definitions.
 
-Access the UI at `https://your_host:31681/api/infrastructure/ui` e.g. [`http://localhost:31681/api/infrastructure/ui`](http://localhost:31681/api/infrastructure/ui)
+Access the UI at `https://your_host:31681/api/driver/ui` e.g. [`http://localhost:31681/api/driver/ui`](http://localhost:31681/api/driver/ui)

@@ -1,6 +1,12 @@
 # Resources
 
-The Openstack driver may only be used for `Create` and `Delete` lifecycle transitions.
+The Openstack driver allows you to create Stacks in a target Openstack as part of a `Create` lifecycle transition (then remove the Stack with `Delete`). This is done by configuring the use of the driver on Create/Delete and by including Heat or Tosca templates in your Resource package. 
+
+The driver also supports finding existing Networks in a target Openstack when attempting to find an external reference Resource (in an Assembly design).
+
+# Resource Descriptor
+
+Openstack driver should only be used on Create/Delete transitions.
 
 Example descriptor:
 ```
@@ -18,6 +24,22 @@ lifecycle:
           infrastructure-type:
             Openstack
 ```
+
+Attempts to use the driver on other transitions will result in an error.
+
+**Note:** it's rare you need to do this but if you do not onboard the Openstack driver with type `openstack` then this value must be renamed to your chosen type.
+
+You may also use the driver when finding an external reference:
+
+```
+queries:
+  drivers:
+    openstack:
+      selector:
+        infrastructure-type:
+          Openstack
+```
+
 # Resource Packages
 
 A Resource using Openstack infrastructure must include either TOSCA or Heat templates in the `Lifecycle` directory of the package:
@@ -32,14 +54,14 @@ Lifecycle/
 
 **Note:** it's rare you need to do this but if you do not onboard the Openstack driver with type `openstack` then the directory above must be renamed to your chosen type. 
 
-Infrastructure Templates are text files which describe infrastructure and can be of any type supported by this driver. Currently the Openstack VIM driver supports two template types, however one of them is only usable when creating infrastructure:
+Infrastructure Templates are text files which describe infrastructure and can be of any type supported by this driver. Currently the Openstack VIM driver supports two template types, however only one of them may be used to find references to externally managed infrastructure:
 
 | Template Type | Execute Lifecycle (Create Infrastructure) | Find References |
 | --- | --- | --- |
 | TOSCA | Y | Y |
 | HEAT | Y | N |
 
-Heat is generally easier to use as Tosca requires translation, so it's behaviour depends on whether the types used can be translated or not. The API for create and find infrastructure requests specifies that templates are passed to the driver to describe the infrastructure.
+Heat is generally easier to use as Tosca requires translation, so it's behaviour depends on whether the types used can be translated or not.
 
 ## Heat Support
 
@@ -70,7 +92,7 @@ Lifecycle/
     tosca.yaml
 ```
 
-To use TOSCA when finding references, add a template to your Resource package with the name `discover.yaml` or `discover.yml`:
+To use TOSCA when finding references to your externally managed Resource, add a template to your Resource package with the name `discover.yaml` or `discover.yml`:
 
 ```
 Lifecycle/
