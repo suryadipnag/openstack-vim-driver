@@ -33,4 +33,12 @@ properties:
   dhcp_enabled:
     type: string
     read-only: true
+infrastructure:
+  Openstack: {}
 lifecycle: {}
+queries:
+  drivers:
+    openstack:
+      selector:
+        infrastructure-type:
+        - Openstack
