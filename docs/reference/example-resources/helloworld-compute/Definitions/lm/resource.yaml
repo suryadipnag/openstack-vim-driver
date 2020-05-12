@@ -22,10 +22,20 @@ properties:
     description: IP of the Compute instance on the network
     read-only: true
 infrastructure:
-  Openstack:
-    template:
-      file: helloworld.yaml
-      template-type: TOSCA
+  Openstack: {}
 lifecycle:
-  Create: {}
-  Delete: {}
+  Create:
+    drivers:
+      openstack:
+        selector:
+          infrastructure-type:
+          - Openstack
+        properties:
+          template-type:
+            value: TOSCA
+  Delete:
+    drivers:
+      openstack:
+        selector:
+          infrastructure-type:
+          - Openstack

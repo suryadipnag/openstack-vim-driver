@@ -2,9 +2,9 @@
 
 This section describes how properties are used as inputs and returned as outputs for create and find infrastructure requests. It is important to understand how this works so you may build configurable infrastructure templates which make use of properties passed down by the Stratoss&;trade Lifecycle Manager (LM).
 
-# Create Requests
+# Execute Lifecycle Requests
 
-On a create request, the driver will be passed the values for this instance of the Resource for any properties specified on its descriptor.
+On an execute lifecycle (Create) request, the driver will be passed the values for this instance of the Resource for any properties specified on its descriptor.
 
 The Openstack VIM driver allows any of these values to be referenced in a TOSCA or HEAT by passing them as inputs (parameters for HEAT). The value of any property will be set as the value of any input with the same name. 
 
@@ -113,7 +113,7 @@ parameters:
     type: string
 ```
 
-# Create Outputs
+# Execute Lifecycle Outputs
 
 All outputs from the TOSCA or HEAT template will be passed back by the Openstack VIM driver after creating the infrastructure. Brent will handle matching the outputs with any properties of the same name in a descriptor. 
 
@@ -148,7 +148,7 @@ outputs:
     value: { get_attr: [node, some_prop_b] }
 ```
 
-# Find Requests
+# Find Reference Requests
 
 On a find request, there is only a single input property sent to the driver: instance name. This value is passed by the Openstack VIM driver to the template as an input called `instance_name`.
 
@@ -164,6 +164,6 @@ topology_template:
 ```
 
 
-# Find Outputs
+# Find Reference Outputs
 
 Similar to a create request, all outputs from the TOSCA template will be passed back by the Openstack VIM driver if infrastructure is found. Brent will handle matching the outputs with any properties of the same name in a descriptor. 
