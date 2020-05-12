@@ -1,4 +1,7 @@
+import os
 import unittest
+import yaml
+import tests.unit.openstack.certs as certs
 from osvimdriver.openstack.environment import OpenstackDeploymentLocationTranslator, OpenstackDeploymentLocation, OpenstackPasswordAuth, OS_URL_PROP, AUTH_ENABLED_PROP, AUTH_API_PROP
 from unittest.mock import patch, MagicMock
 
@@ -110,6 +113,51 @@ class TestOpenstackDeploymentLocation(unittest.TestCase):
         second_neutron_driver = location.neutron_driver
         self.assertEqual(second_neutron_driver, first_neutron_driver)
 
+    @patch('osvimdriver.openstack.environment.keystonesession.Session')
+    def test_get_session_with_certs(self, mock_keystone_session_init):
+        mock_os_auth = MagicMock()
+        mock_auth = MagicMock()
+        mock_auth.build_os_auth.return_value = mock_os_auth
+        mock_keystone_session = mock_keystone_session_init.return_value
+        certs_dir = os.path.dirname(os.path.abspath(certs.__file__))
+        ca_cert_path = os.path.join(certs_dir, 'ca.cert')
+        with open(ca_cert_path, 'r') as f:
+            ca_cert = f.read()
+        client_cert_path = os.path.join(certs_dir, 'client.cert')
+        with open(client_cert_path, 'r') as f:
+            client_cert = f.read()
+        client_key_path = os.path.join(certs_dir, 'client.key')
+        with open(client_key_path, 'r') as f:
+            client_key = f.read()
+        location = OpenstackDeploymentLocation('testdl', 'http://testip', mock_auth, ca_cert=ca_cert, client_cert=client_cert, client_key=client_key)
+        try:
+            created_session = location.create_session()
+            mock_keystone_session_init.assert_called_once_with(auth=mock_os_auth, verify=location._OpenstackDeploymentLocation__ca_cert_path, cert=(location._OpenstackDeploymentLocation__client_cert_path, location._OpenstackDeploymentLocation__client_key_path))
+            self.assertTrue(os.path.exists(location._OpenstackDeploymentLocation__ca_cert_path))
+            self.assertTrue(os.path.exists(location._OpenstackDeploymentLocation__client_cert_path))
+            self.assertTrue(os.path.exists(location._OpenstackDeploymentLocation__client_key_path))
+        finally:
+            location.close()
+
+    @patch('osvimdriver.openstack.environment.keystonesession.Session')
+    def test_close_session_with_certs_removes_files(self, mock_keystone_session_init):
+        mock_os_auth = MagicMock()
+        mock_auth = MagicMock()
+        mock_auth.build_os_auth.return_value = mock_os_auth
+        mock_keystone_session = mock_keystone_session_init.return_value
+        location = OpenstackDeploymentLocation('testdl', 'http://testip', mock_auth, ca_cert='cacert', client_cert='clientcert', client_key='clientkey')
+        try:
+            created_session = location.create_session()
+            mock_keystone_session_init.assert_called_once_with(auth=mock_os_auth, verify=location._OpenstackDeploymentLocation__ca_cert_path, cert=(location._OpenstackDeploymentLocation__client_cert_path, location._OpenstackDeploymentLocation__client_key_path))
+            self.assertTrue(os.path.exists(location._OpenstackDeploymentLocation__ca_cert_path))
+            self.assertTrue(os.path.exists(location._OpenstackDeploymentLocation__client_cert_path))
+            self.assertTrue(os.path.exists(location._OpenstackDeploymentLocation__client_key_path))
+            location.close()
+            self.assertFalse(os.path.exists(location._OpenstackDeploymentLocation__ca_cert_path))
+            self.assertFalse(os.path.exists(location._OpenstackDeploymentLocation__client_cert_path))
+            self.assertFalse(os.path.exists(location._OpenstackDeploymentLocation__client_key_path))
+        finally:
+            location.close()
 
 class TestOpenstackDeploymentLocationTranslator(unittest.TestCase):
 
@@ -178,3 +226,49 @@ class TestOpenstackDeploymentLocationTranslator(unittest.TestCase):
         self.assertIn('domain_id', openstack_auth.auth_properties)
         self.assertEqual(openstack_auth.auth_properties['domain_id'], 'testdomain')
         self.assertEqual(len(openstack_auth.auth_properties), 3)
+
+    def test_from_deployment_location_with_certs(self):
+        translator = OpenstackDeploymentLocationTranslator()
+        certs_dir = os.path.dirname(os.path.abspath(certs.__file__))
+        ca_cert_path = os.path.join(certs_dir, 'ca.cert')
+        with open(ca_cert_path, 'r') as f:
+            ca_cert = f.read()
+        client_cert_path = os.path.join(certs_dir, 'client.cert')
+        with open(client_cert_path, 'r') as f:
+            client_cert = f.read()
+        client_key_path = os.path.join(certs_dir, 'client.key')
+        with open(client_key_path, 'r') as f:
+            client_key = f.read()
+        openstack_location = translator.from_deployment_location({'name': 'testdl', 'properties': {
+            OS_URL_PROP: 'testip',
+            AUTH_API_PROP: 'identity/v3',
+            'os_auth_username': 'test',
+            'os_auth_password': 'secret',
+            'os_auth_domain_id': 'testdomain',
+            'os_cacert': ca_cert,
+            'os_cert': client_cert, 
+            'os_key': client_key
+        }})
+        self.assertEqual(openstack_location._OpenstackDeploymentLocation__ca_cert, ca_cert)
+        self.assertEqual(openstack_location._OpenstackDeploymentLocation__client_cert, client_cert)
+        self.assertEqual(openstack_location._OpenstackDeploymentLocation__client_key, client_key)
+    
+    @patch('osvimdriver.openstack.environment.keystonesession.Session')
+    def test_from_deployment_location_certs_multiline_string(self, mock_keystone_session_init):
+        translator = OpenstackDeploymentLocationTranslator()
+        certs_dir = os.path.dirname(os.path.abspath(certs.__file__))
+        location_path = os.path.join(certs_dir, 'location.yaml')
+        with open(location_path, 'r') as f:
+            location_dict = yaml.safe_load(f.read())
+        location = translator.from_deployment_location(location_dict)
+        try:
+            location.create_session()
+            self.assertTrue(os.path.exists(location._OpenstackDeploymentLocation__ca_cert_path))
+            path_to_expected_cacert = os.path.join(certs_dir, 'ca.cert')
+            with open(path_to_expected_cacert, 'r') as f:
+                expected_cacert = f.read()
+            with open(location._OpenstackDeploymentLocation__ca_cert_path, 'r') as f:
+                actual_cacert = f.read()
+            self.assertEqual(actual_cacert, expected_cacert)
+        finally:
+            location.close()
