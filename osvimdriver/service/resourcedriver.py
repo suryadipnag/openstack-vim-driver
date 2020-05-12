@@ -79,6 +79,7 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         self.props_merger = PropertiesMerger()
     
     def execute_lifecycle(self, lifecycle_name, driver_files, system_properties, resource_properties, request_properties, associated_topology, deployment_location):
+        openstack_location = None
         try:
             openstack_location = self.location_translator.from_deployment_location(deployment_location)
             if lifecycle_name.upper() == 'CREATE':
@@ -94,6 +95,8 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
                     driver_files.remove_all()
                 except Exception as e:
                     logger.exception('Encountered an error whilst trying to clear out driver files directory {0}: {1}'.format(driver_files.root_path, str(e)))
+            if openstack_location != None:
+                openstack_location.close()
 
     def __handle_create(self, driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location):
         heat_driver = openstack_location.heat_driver
@@ -148,6 +151,7 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         return LifecycleExecuteResponse(request_id)
 
     def find_reference(self, instance_name, driver_files, deployment_location):
+        openstack_location = None
         try:
             openstack_location = self.location_translator.from_deployment_location(deployment_location)
             inputs = {
@@ -170,6 +174,8 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
                     driver_files.remove_all()
                 except Exception as e:
                     logger.exception('Encountered an error whilst trying to clear out driver files directory {0}: {1}'.format(driver_files.root_path, str(e)))
+            if openstack_location != None:
+                openstack_location.close()
 
     def __build_request_id(self, request_type, stack_id):
         request_id = request_type
