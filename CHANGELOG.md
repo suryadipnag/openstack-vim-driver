@@ -1,5 +1,18 @@
 # Change Log
 
+## [2.0.0](https://github.com/accanto-systems/openstack-vim-driver/tree/2.0.0) (2020-05-19)
+[Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/1.0.0...2.0.0)
+
+**Implemented enhancements:**
+- Support openstack certificates [\#43](https://github.com/accanto-systems/openstack-vim-driver/issues/43)
+- Update API handling to support new Resource Driver API [\#49](https://github.com/accanto-systems/openstack-vim-driver/issues/49)
+
+**Fixed bugs:**
+- Log level causing high disk usage [\#44](https://github.com/accanto-systems/openstack-vim-driver/issues/44)
+
+**Depdendencies:**
+- Upgraded to Ignition version 2.0.0
+
 ## [1.0.0](https://github.com/accanto-systems/openstack-vim-driver/tree/1.0.0) (2020-02-20)
 [Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/0.7.1...1.0.0)
 
