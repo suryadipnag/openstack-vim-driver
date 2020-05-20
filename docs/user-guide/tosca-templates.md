@@ -2,6 +2,8 @@
 
 The following sections detail how particular types are implemented by this driver and details any limitations to using them.
 
+You may also choose to read [TOSCA NFV Types](tosca-nfv-types.md) if interested in using types from the NFV profile.
+
 # Compute
 
 | API    | Supported |
