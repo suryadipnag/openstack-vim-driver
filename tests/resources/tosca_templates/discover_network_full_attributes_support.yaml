@@ -5,7 +5,7 @@ description: Openstack Neutron Network
 topology_template:
   node_templates:
     network:
-      type: os.ext.nodes.network.Network
+      type: tosca.nodes.network.NetworkWithAttr
       properties:
         network_name: TestNetwork
 

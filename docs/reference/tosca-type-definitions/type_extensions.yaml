@@ -6,12 +6,9 @@ node_types:
   ##########################
   ## Custom Openstack Types
   ############################ 
-  ## The following types are Openstack specific
-  os.nodes.Root:
-    derived_from: tosca.nodes.Root
 
   ### Neutron
-  os.datatypes.neutron.AllocationPool:
+  tosca.datatypess.network.NeutronAllocationPool:
     derived_from: tosca.datatypes.Root
     properties:
       start:
@@ -22,7 +19,7 @@ node_types:
         description: end address for the allocation pool
         type: string
         required: true
-  os.datatypes.neutron.ExtFixedIps:
+  tosca.datatypess.network.NeutronExtFixedIps:
     derived_from: tosca.datatypes.Root
     properties:
       ip_address:
@@ -33,7 +30,7 @@ node_types:
         description: subnet of external fixed IP address
         type: string
         required: false
-  os.datatypes.neutron.ExtGatewayInfo:
+  tosca.datatypess.network.NeutronExtGatewayInfo:
     derived_from: tosca.datatypes.Root
     properties:
       enable_snat:
@@ -44,13 +41,13 @@ node_types:
         description: external fixed IP addresses for the gateway (Mitaka 6.0.0)
         type: list
         entry_schema:
-          type: os.datatypes.neutron.ExtFixedIps
+          type: tosca.datatypess.network.NeutronExtFixedIps
         required: false
       network:
         description: ID or name of the external network for the gateway
         type: string
         required: true
-  os.datatypes.neutron.HostRouteInfo:
+  tosca.datatypess.network.NeutronHostRouteInfo:
     derived_from: tosca.datatypes.Root
     properties:
       destination: 
@@ -61,7 +58,7 @@ node_types:
         description: the next hop for the destination
         type: string
         required: true
-  os.datatypes.neutron.SecurityGroupRule:
+  tosca.datatypess.network.NeutronSecurityGroupRule:
     derived_from: tosca.datatypes.Root
     properties:
       direction:
@@ -117,16 +114,16 @@ node_types:
         constraints:
           - valid_values: [remote_ip_prefix, remote_group_id]
 
-  os.nodes.neutron.Root:
-    derived_from: os.nodes.Root
+  tosca.nodes.network.NeutronRoot:
+    derived_from: tosca.nodes.Root
     attributes:
       show:
         description: detailed information about this resource
         type: string
 
-  os.nodes.neutron.Net:
+  tosca.nodes.network.NeutronNetwork:
     description: A network is a virtual isolated layer-2 broadcast domain which is typically reserved to the tenant who created it, unless the network has been explicitly configured to be shared
-    derived_from: os.nodes.neutron.Root
+    derived_from: tosca.nodes.network.NeutronRoot
     properties:
       admin_state_up:
         description: the administrative state of the network
@@ -210,15 +207,15 @@ node_types:
       link:
         type: tosca.capabilities.network.Linkable
 
-  os.nodes.neutron.Subnet:
+  tosca.nodes.network.NeutronSubnet:
     description: A subnet represents an IP address block that can be used for assigning IP addresses to virtual instances. Each subnet must have a CIDR and must be associated with a network. IPs can be either selected from the whole subnet CIDR, or from “allocation pools” that can be specified by the user. (OS::Neutron::Subnet)
-    derived_from: os.nodes.neutron.Root
+    derived_from: tosca.nodes.network.NeutronRoot
     properties:
       allocation_pools:
         description: start and end addresses for the allocation pools
         type: list
         entry_schema:
-          type: os.datatypes.neutron.AllocationPool
+          type: tosca.datatypess.network.NeutronAllocationPool
         required: false
       cidr: 
         description: the CIDR
@@ -244,7 +241,7 @@ node_types:
         description: a list of host route dictionaries for the subnet
         type: list
         entry_schema: 
-          type: os.datatypes.neutron.HostRouteInfo
+          type: tosca.datatypess.network.NeutronHostRouteInfo
         required: false
       ip_version:
         description: the IP version (4 or 6)
@@ -303,7 +300,7 @@ node_types:
         description: start and end addresses for the allocation pools
         type: list
         entry_schema:
-          type: os.datatypes.neutron.AllocationPool
+          type: tosca.datatypess.network.NeutronAllocationPool
       cidr: 
         description: CIDR block notation for this subnet
         type: string
@@ -322,7 +319,7 @@ node_types:
         description: additional routes for this subnet
         type: list
         entry_schema: 
-          type: os.datatypes.neutron.HostRouteInfo
+          type: tosca.datatypess.network.NeutronHostRouteInfo
       ip_version:
         description: IP version for this subnet
         type: string
@@ -340,9 +337,9 @@ node_types:
           capability: tosca.capabilities.network.Linkable
           relationship: tosca.relationships.network.LinksTo
 
-  os.nodes.neutron.Router:
+  tosca.nodes.network.NeutronRouter:
     description: Router is a physical or virtual network device that passes network traffic between different networks (OS::Neutron::Router)
-    derived_from: os.nodes.neutron.Root
+    derived_from: tosca.nodes.network.NeutronRoot
     properties:
       admin_state_up:
         description: the administrative state of the router
@@ -355,7 +352,7 @@ node_types:
         required: false
       external_gateway_info:
         description: external network gateway configuration for a router
-        type:  os.datatypes.neutron.ExtGatewayInfo
+        type:  tosca.datatypess.network.NeutronExtGatewayInfo
         required: false
       ha:
         description: indicates whether or not to create a highly available router (Kilo 2015.1)
@@ -387,7 +384,7 @@ node_types:
         type: boolean
       external_gateway_info:
         description: gateway network for the router
-        type: os.datatypes.neutron.ExtGatewayInfo 
+        type: tosca.datatypess.network.NeutronExtGatewayInfo 
       name:
         description: name of the router
         type: string
@@ -397,9 +394,9 @@ node_types:
       tenant_id:
         description: the tenant owning this resource
         type: string
-  os.nodes.neutron.RouterInterface:
+  tosca.nodes.network.NeutronRouterInterface:
     description: Router interfaces associate routers with existing subnets or ports
-    derived_from: os.nodes.neutron.Root
+    derived_from: tosca.nodes.network.NeutronRoot
     properties:
       port:
         description: the port, either subnet or port should be specified (Kilo 2015.1)
@@ -409,12 +406,12 @@ node_types:
         description: the subnet, either subnet or port should be specified
         type: string
         required: false
-  os.nodes.neutron.SecurityGroup:
+  tosca.nodes.network.NeutronSecurityGroup:
     description: >
       Security groups are sets of IP filter rules that are applied to an instance’s networking. 
       They are project specific, and project members can edit the default rules for their group and add new rules sets. 
       All projects have a “default” security group, which is applied to instances that have no other security group defined (Icehouse 2014.1)
-    derived_from: os.nodes.neutron.Root
+    derived_from: tosca.nodes.network.NeutronRoot
     properties:
       description:
         description: description of the security group
@@ -428,11 +425,11 @@ node_types:
         description: list of security group rules
         type: list
         entry_schema:
-          type: os.datatypes.neutron.SecurityGroupRule
+          type: tosca.datatypess.network.NeutronSecurityGroupRule
         required: false
-  os.nodes.neutron.SecurityGroupRule:
+  tosca.nodes.network.NeutronSecurityGroupRule:
     description: rules to use in security group resource (Newton 7.0.0)
-    derived_from: os.nodes.neutron.Root
+    derived_from: tosca.nodes.network.NeutronRoot
     properties: 
       direction:
         description: >
@@ -490,7 +487,7 @@ node_types:
   ## Extension Types
   ##########################
   ## These types extend original tosca types to provide extra properties/attributes
-  os.ext.nodes.network.FloatingIP:
+  tosca.nodes.network.NeutronFloatingIP:
     description: Extension of FloatingIP 
     derived_from: tosca.nodes.network.FloatingIP
     properties:
@@ -506,7 +503,7 @@ node_types:
           capability: tosca.capabilities.network.Linkable
           relationship: tosca.relationships.network.LinksTo
           occurences: [0, 1]
-  os.ext.nodes.network.Port:
+  tosca.nodes.network.NeutronPort:
     description: Extension of Port to include additonal properties allowed on a Neutron port
     derived_from: tosca.nodes.network.Port
     properties:
@@ -514,7 +511,7 @@ node_types:
         description: List of security group names or IDs. Cannot be used if neutron ports are associated with this server; assign security groups to the ports instead
         type: list
         required: false
-  os.ext.nodes.Compute:
+  tosca.nodes.Compute.NovaServer:
     description: Extension of Compute to include additional properties allowed on a Nova server
     derived_from: tosca.nodes.Compute
     properties:
@@ -598,7 +595,7 @@ node_types:
         description: Policy on how to apply a user_data update; either by ignoring it or by replacing the entire server
         type: string
         required: false    
-  os.ext.nodes.network.Network:
+  tosca.nodes.network.NetworkWithAttr:
     derived_from: tosca.nodes.network.Network
     attributes:
       # The following attributes are duplicates of the property definitions on tosca.nodes.network.Network

@@ -17,7 +17,7 @@ Using this type will result in an `OS::Nova::Server` being created in the target
 
 If set, the `virtual_compute` capability will result in a new `OS::Nova::Flavor` being created for the server. You may use the `flavor` property below to override this behaviour.
 
-An extension type has been provided, named `os.nodes.nfv.Vdu.Compute`, which allows you to add the following Openstack specific properties: 
+An extension type has been provided, named `tosca.nodes.nfv.Vdu.Compute.NovaServer`, which allows you to add the following Openstack specific properties: 
 
 - admin_pass
 - availability_zone
@@ -62,7 +62,7 @@ The `virtual_binding` requirement should reference the name of a `Vdu.Compute` n
 
 The `virtual_link` requirement should reference the name of a `VnfVirtualLink` node in the template. 
 
-An extension type has been provided, named `os.nodes.nfv.VduCp`, which allows you to add the following Openstack specific properties: 
+An extension type has been provided, named `tosca.nodes.nfv.VduCp.NeutronPort`, which allows you to add the following Openstack specific properties: 
 
 - name
 - admin_state_up
@@ -81,7 +81,7 @@ An extension type has been provided, named `os.nodes.nfv.VduCp`, which allows yo
 
 # tosca.nodes.nfv.VnfVirtualLink
 
-Also see the [alternative VnfVirtualLink type](#os.nodes.nfv.VnfVirtualLink)
+Also see the [alternative VnfVirtualLink type](#tosca.nodes.nfv.VnfVirtualLink.NeutronNetwork)
 
 Using this type will result in an `OS::Neutron::Network`, and possibly a `OS::Neutron::Subnet`,  `OS::Neutron::QoSBandwidthLimitRule` and `OS::Neutron::QoSPolicy`, being created in the target Openstack environment.
 
@@ -132,7 +132,7 @@ resources:
     type: OS::Neutron::QoSPolicy
 ```
 
-# os.nodes.nfv.VnfVirtualLink
+# tosca.nodes.nfv.VnfVirtualLink.NeutronNetwork
 
 This type is NOT an extension of `tosca.nodes.nfv.VnfVirtualLink`, instead it is an alternative which is useful when you need to reference an existing network by name.
 
@@ -142,7 +142,7 @@ To reference an existing network by name, you only need to provide the Network p
 topology_template:
   node_templates:
     mgmt_network_node:
-      type: os.nodes.nfv.VnfVirtualLink
+      type: tosca.nodes.nfv.VnfVirtualLink.NeutronNetwork
       properties:
       name: { get_input: mgmt_network }
 ```
@@ -153,12 +153,12 @@ This is useful when you want to create a port on an existing network:
 topology_template:
   node_templates:
     mgmt_network:
-      type: os.nodes.nfv.VnfVirtualLink
+      type: tosca.nodes.nfv.VnfVirtualLink.NeutronNetwork
       properties:
         name: mgmt
 
     mgmt_port:
-      type: os.nodes.nfv.VduCp
+      type: tosca.nodes.nfv.VduCp.NeutronPort
       properties:
         name: 'mgmt_port'
       requirements:
@@ -166,7 +166,7 @@ topology_template:
         - virtual_link: mgmt_network
 
     compute_node:
-      type: os.nodes.nfv.Vdu.Compute
+      type: tosca.nodes.nfv.Vdu.Compute.NovaServer
       properties:
         name: compute-server
         ...remaining properties...      

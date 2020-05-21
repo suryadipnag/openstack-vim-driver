@@ -8,7 +8,7 @@ imports:
 
 node_types:
 
-  os.nodes.nfv.VduCp:
+  tosca.nodes.nfv.VduCp.NeutronPort:
     derived_from: tosca.nodes.nfv.VduCp
     properties:
       name:
@@ -22,7 +22,7 @@ node_types:
         type: list
         description: Additional MAC/IP address pairs allowed to pass through the port.
         entry_schema:
-          type: os.datatypes.nfv.VduCp.AddressPair
+          type: tosca.datatypess.nfv.VduCp.AddressPair
         required: false
       device_id:
         type: string
@@ -40,7 +40,7 @@ node_types:
         type: list
         description: Desired IPs for this port.
         entry_schema:
-          type: os.datatypes.nfv.VduCp.IP
+          type: tosca.datatypess.nfv.VduCp.IP
         required: false
       mac_address:
         type: string
@@ -70,7 +70,7 @@ node_types:
       ip_address:
         type: string
 
-  os.datatypes.nfv.VduCp.AddressPair:
+  tosca.datatypess.nfv.VduCp.AddressPair:
     derived_from: tosca.datatypes.Root
     properties:
       ip_address:
@@ -79,7 +79,7 @@ node_types:
         type: string
         required: false
 
-  os.datatypes.nfv.VduCp.IP:
+  tosca.datatypess.nfv.VduCp.IP:
     derived_from: tosca.datatypes.Root
     properties:
       ip_address:
@@ -87,7 +87,7 @@ node_types:
       subnet: 
         type: string
 
-  os.nodes.nfv.Vdu.Compute:
+  tosca.nodes.nfv.Vdu.Compute.NovaServer:
     derived_from: tosca.nodes.nfv.Vdu.Compute
     description: extension to Vdu.Compute
     properties:
@@ -178,7 +178,7 @@ node_types:
         type: string
         required: false
 
-  os.nodes.nfv.VnfVirtualLink:
+  tosca.nodes.nfv.VnfVirtualLink.NeutronNetwork:
     derived_from: tosca.nodes.Root
     description: describes network connectivity between a VNFC instance based on this VDU and an internal VL 
     properties:

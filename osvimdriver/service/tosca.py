@@ -6,7 +6,6 @@ import osvimdriver.tosca.definitions as tosca_definitions
 import toscaparser.common.exception as toscaparser_exceptions
 import yaml
 
-
 class ToscaValidationError(Exception):
     pass
 
