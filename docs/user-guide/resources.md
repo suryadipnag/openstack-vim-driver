@@ -100,4 +100,4 @@ Lifecycle/
     discover.yaml
 ```
 
-To read more about the TOSCA types supported by this driver, see [TOSCA templates](./tosca-template.md)
+To read more about the TOSCA types supported by this driver, see [TOSCA templates](./tosca-templates.md)
