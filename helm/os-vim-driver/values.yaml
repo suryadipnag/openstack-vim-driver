@@ -37,7 +37,7 @@ app:
       WSGI_CONTAINER: uwsgi
       ## the number of processes and threads to spawn to handle requests
       NUM_PROCESSES: "4"
-      NUM_THREADS: "2"
+      NUM_THREADS: "4"
 
     ## ovd_config.yml (driver configuration) overrides
     override:
