@@ -260,7 +260,7 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.assert_internal_resource(result.associated_topology, '1')
         self.mock_heat_translator.generate_heat_template.assert_called_once_with(self.tosca_template)
         self.mock_location_translator.from_deployment_location.assert_called_once_with(self.deployment_location)
-        self.mock_heat_driver.create_stack.assert_called_once_with(ANY, self.mock_heat_translator.generate_heat_template.return_value, {'propA': 'valueA'})
+        self.mock_heat_driver.create_stack.assert_called_once_with(ANY, self.mock_heat_translator.generate_heat_template.return_value, {'propA': 'valueA'}, files={})
 
     def test_create_infrastructure_with_invalid_tosca_template_throws_error(self):
         self.mock_heat_translator.generate_heat_template.side_effect = ToscaValidationError('Validation error')

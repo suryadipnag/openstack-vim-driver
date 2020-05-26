@@ -13,7 +13,7 @@ class TestHeatDriver(unittest.TestCase):
         mock_session = MagicMock()
         heat_driver = HeatDriver(mock_session)
         stack_id = heat_driver.create_stack('test_stack', 'heat_template_text', {'propA': 1})
-        mock_heat_client.stacks.create.assert_called_once_with(stack_name='test_stack', template='heat_template_text', parameters={'propA': 1})
+        mock_heat_client.stacks.create.assert_called_once_with(stack_name='test_stack', template='heat_template_text', parameters={'propA': 1}, files={})
         self.assertEqual(stack_id, 'mock_stack_id')
 
     @patch('osvimdriver.openstack.heat.driver.heatclient.Client')

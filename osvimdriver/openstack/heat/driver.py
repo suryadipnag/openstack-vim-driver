@@ -18,14 +18,18 @@ class HeatDriver():
     def __get_heat_client(self):
         return self.__heat_client
 
-    def create_stack(self, stack_name, heat_template, input_properties={}):
+    def create_stack(self, stack_name, heat_template, input_properties=None, files=None):
+        if input_properties is None:
+            input_properties = {}
+        if files is None:
+            files = {}
         if stack_name is None:
             raise ValueError('stack_name must be provided')
         if heat_template is None:
             raise ValueError('heat_template must be provided')
         heat_client = self.__get_heat_client()
         logger.debug('Creating stack with name %s', stack_name)
-        create_result = heat_client.stacks.create(stack_name=stack_name, template=heat_template, parameters=input_properties)
+        create_result = heat_client.stacks.create(stack_name=stack_name, template=heat_template, parameters=input_properties, files=files)
         stack_id = create_result['stack']['id']
         logger.debug('Stack with name %s created and assigned id %s', stack_name, stack_id)
         return stack_id

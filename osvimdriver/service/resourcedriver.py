@@ -1,6 +1,7 @@
 import uuid
 import logging
 import re
+import os
 from ignition.service.framework import Service, Capability, interface
 from ignition.service.config import ConfigurationPropertiesGroup
 from ignition.service.resourcedriver import ResourceDriverHandlerCapability, InfrastructureNotFoundError, InvalidDriverFilesError, ResourceDriverError, InvalidRequestError
@@ -112,11 +113,14 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
                 else:
                     stack_id = input_stack_id
         if stack_id is None:
+            kwargs = {}
             template_type = request_properties.get('template-type', None)
             if template_type is not None and template_type.upper() == TOSCA_TEMPLATE_TYPE.upper():
                 heat_template = self.__get_heat_template_from_tosca(driver_files)
             elif template_type is None or template_type.upper() == HEAT_TEMPLATE_TYPE.upper():
                 heat_template = self.__get_heat_template(driver_files)
+                files = self.__gather_additional_heat_files(driver_files)
+                kwargs['files'] = files
             else:
                 raise InvalidDriverFilesError('Cannot create using template of type \'{0}\'. Must be one of: {1}'.format(template_type, [TOSCA_TEMPLATE_TYPE, HEAT_TEMPLATE_TYPE]))
             heat_input_util = openstack_location.get_heat_input_util()
@@ -126,7 +130,7 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
                 stack_name = self.stack_name_creator.create(system_properties['resourceId'], system_properties['resourceName'])
             else:
                 stack_name = 's' + str(uuid.uuid4())
-            stack_id = heat_driver.create_stack(stack_name, heat_template, heat_inputs)
+            stack_id = heat_driver.create_stack(stack_name, heat_template, heat_inputs, **kwargs)
         request_id = self.__build_request_id(CREATE_REQUEST_PREFIX, stack_id)
         associated_topology = self.__build_associated_topology_response(stack_id)
         return LifecycleExecuteResponse(request_id, associated_topology=associated_topology)
@@ -236,6 +240,20 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         with open(template_path, 'r') as f:
             heat_template = f.read()
         return heat_template
+
+    def __gather_additional_heat_files(self, driver_files):
+        files = {}
+        if driver_files.has_directory('files'):
+            files_tree = driver_files.get_directory_tree('files')
+            for dirpath, _, fnames in os.walk(files_tree.root_path):
+                for fname in fnames:
+                    fpath = os.path.join(dirpath, fname)
+                    with open(fpath, 'r') as f:
+                        content = f.read()
+                    relative_path = os.path.relpath(fpath, files_tree.root_path)
+                    files[relative_path] = content
+        print(files.keys())
+        return files
 
     def get_lifecycle_execution(self, request_id, deployment_location):
         openstack_location = self.location_translator.from_deployment_location(deployment_location)
