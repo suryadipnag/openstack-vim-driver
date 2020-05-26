@@ -132,7 +132,8 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
             elif template_type == HEAT_TEMPLATE_TYPE.upper():
                 heat_template = self.__get_heat_template(driver_files)
                 files = self.__gather_additional_heat_files(driver_files)
-                kwargs['files'] = files
+                if len(files) > 0:
+                    kwargs['files'] = files
             else:
                 raise InvalidDriverFilesError('Cannot create using template of type \'{0}\'. Must be one of: {1}'.format(template_type, [TOSCA_TEMPLATE_TYPE, HEAT_TEMPLATE_TYPE]))
             heat_input_util = openstack_location.get_heat_input_util()
