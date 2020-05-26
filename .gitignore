@@ -107,6 +107,7 @@ venv.bak/
 Openstack_VIM_Driver_boot
 test_workspace/
 driver_files/
+active-translator.conf
 
 # Docker whls
 docker/whls/

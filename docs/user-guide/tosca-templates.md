@@ -2,6 +2,8 @@
 
 The following sections detail how particular types are implemented by this driver and details any limitations to using them.
 
+You may also choose to read [TOSCA NFV Types](tosca-nfv-types.md) if interested in using types from the NFV profile.
+
 # Compute
 
 | API    | Supported |
@@ -9,13 +11,13 @@ The following sections detail how particular types are implemented by this drive
 | Create | Y         |
 | Find   | N         |
 
-Using the `tosca.nodes.Compute` or `os.ext.nodes.Compute` type will result in an `OS::Nova::Server` being created in the target Openstack environment.
+Using the `tosca.nodes.Compute` or `tosca.nodes.Compute.NovaServer` type will result in an `OS::Nova::Server` being created in the target Openstack environment.
 
 ## Create
 
 ### Properties and Attributes
 
-The TOSCA specification for `tosca.nodes.Compute` declares no properties. However, a custom extension named `os.ext.nodes.Compute` is automatically added to all templates, which enables additional properties supported by Heat:
+The TOSCA specification for `tosca.nodes.Compute` declares no properties. However, a custom extension named `tosca.nodes.Compute.NovaServer` is automatically added to all templates, which enables additional properties supported by Heat:
 
 - admin_pass
 - availability_zone
@@ -36,7 +38,7 @@ The TOSCA specification for `tosca.nodes.Compute` declares no properties. Howeve
 - user_data_format
 - user_data_update_policy
 
-The complete definition of `os.ext.nodes.Compute` can found at [Full Types Definition](../reference/full_tosca_types_definition.md)
+The complete definition of `tosca.nodes.Compute.NovaServer` can found at [Full Types Definition](../reference/full_tosca_types_definition.md)
 
 The TOSCA specification for `tosca.nodes.Compute` declares 4 attributes, however only `private_address` can currently be used with this driver. This will return the IP address of the server on the private network.
 
@@ -44,7 +46,7 @@ Although the TOSCA specification states all properties should be available as at
 
 ### Host Capability
 
-The properties of the `host` capability on a `tosca.nodes.Compute` are used to calculate the `image` and `flavor` to be used by the `OS::Nova::Server`, unless properties of the same name are set on the node instead (the extension type `os.ext.nodes.Compute` defines these additional properties, leave them empty to allow calculation to take place).
+The properties of the `host` capability on a `tosca.nodes.Compute` are used to calculate the `image` and `flavor` to be used by the `OS::Nova::Server`, unless properties of the same name are set on the node instead (the extension type `tosca.nodes.Compute.NovaServer` defines these additional properties, leave them empty to allow calculation to take place).
 
 Currently, the translator used by this driver only supports a pre-defined list of flavors and images:
 
@@ -112,7 +114,7 @@ When creating infrastructure, the TOSCA template may reference an existing netwo
 
 ## Find
 
-When finding an existing/external network using the find infrastructure API, the rules are different to a Create. The driver will use the Neutron API directly to retrieve information about the network and subnet. As a result, more attributes are available. A custom extension named `os.ext.nodes.network.Network` is automatically added to all templates, which enables additional attributes to be retrieved as outputs from the template:
+When finding an existing/external network using the find infrastructure API, the rules are different to a Create. The driver will use the Neutron API directly to retrieve information about the network and subnet. As a result, more attributes are available. A custom extension named `tosca.nodes.network.NetworkWithAttr` is automatically added to all templates, which enables additional attributes to be retrieved as outputs from the template:
 
 - ip_version
 - cidr
@@ -126,19 +128,19 @@ When finding an existing/external network using the find infrastructure API, the
 - physical_network
 - dhcp_enabled
 
-The complete definition of `os.ext.nodes.network.Network` can found at [Full Types Definition](../reference/full_tosca_types_definition.md).
+The complete definition of `tosca.nodes.network.NetworkWithAttr` can found at [Full Types Definition](../reference/full_tosca_types_definition.md).
 
 This project also includes a reference implementation of a Resource to be used as an "external reference" in LM, which makes use of the find infrastructure API to discover an existing network and return it's attributes. It can be found at `example-resources/neutron-network`.
 
 # Floating IP
 
-An extension type named `os.ext.nodes.network.FloatingIP` has been included which supports setting the `floating_network` through a requirement instead of a property.
+An extension type named `tosca.nodes.network.NeutronFloatingIP` has been included which supports setting the `floating_network` through a requirement instead of a property.
 
 It also supports the `floating_ip_address` attribute.
 
 # Port
 
-An extension type named `os.ext.nodes.network.Port` has been included which supports a `security_groups` property so that a port may be associated to security groups.
+An extension type named `tosca.nodes.network.NeutronPort` has been included which supports a `security_groups` property so that a port may be associated to security groups.
 
 # Other Heat Types
 
@@ -148,11 +150,11 @@ The following types have been added:
 
 | Tosca Type                         | Heat Type Equivalent           |
 | ---------------------------------- | ------------------------------ |
-| os.nodes.neutron.Net               | OS::Neutron::Net               |
-| os.nodes.neutron.Subnet            | OS::Neutron::Subnet            |
-| os.nodes.neutron.Router            | OS::Neutron::Router            |
-| os.nodes.neutron.RouterInterface   | OS::Neutron::RouterInterface   |
-| os.nodes.neutron.SecurityGroup     | OS::Neutron::SecurityGroup     |
-| os.nodes.neutron.SecurityGroupRule | OS::Neutron::SecurityGroupRule |
+| tosca.nodes.network.NeutronNetwork               | OS::Neutron::Net               |
+| tosca.nodes.network.NeutronSubnet            | OS::Neutron::Subnet            |
+| tosca.nodes.network.NeutronRouter            | OS::Neutron::Router            |
+| tosca.nodes.network.NeutronRouterInterface   | OS::Neutron::RouterInterface   |
+| tosca.nodes.network.NeutronSecurityGroup     | OS::Neutron::SecurityGroup     |
+| tosca.nodes.network.NeutronSecurityGroupRule | OS::Neutron::SecurityGroupRule |
 
 The complete definition of these TOSCA types can be found at [Full Types Definition](../reference/full_tosca_types_definition.md).

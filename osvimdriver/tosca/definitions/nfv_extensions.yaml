@@ -1,0 +1,227 @@
+tosca_definitions_version: tosca_simple_yaml_1_2
+
+description: Custom NFV types supported out-of-the-box by this driver
+
+imports:
+  - etsi_nfv_sol001_common_types.yaml
+  - etsi_nfv_sol001_vnfd_types.yaml
+
+node_types:
+
+  tosca.nodes.nfv.VduCp.NeutronPort:
+    derived_from: tosca.nodes.nfv.VduCp
+    properties:
+      name:
+        type: string
+        required: false
+      admin_state_up:
+        type: boolean
+        description: The administrative state of this port.
+        required: false
+      allowed_address_pairs:
+        type: list
+        description: Additional MAC/IP address pairs allowed to pass through the port.
+        entry_schema:
+          type: tosca.datatypess.nfv.VduCp.AddressPair
+        required: false
+      device_id:
+        type: string
+        description: Device ID of this port.
+        required: false
+      device_owner:
+        type: string
+        description: Name of the network owning the port. The value is typically network:floatingip or network:router_interface or network:dhcp.
+        required: false
+      dns_name:
+        type: string
+        description: DNS name associated with the port.
+        required: false
+      fixed_ips:
+        type: list
+        description: Desired IPs for this port.
+        entry_schema:
+          type: tosca.datatypess.nfv.VduCp.IP
+        required: false
+      mac_address:
+        type: string
+        description: MAC address to give to this port. The default update policy of this property in neutron is that allow admin role only.
+        required: false
+      port_security_enabled:
+        type: boolean
+        description: Flag to enable/disable port security on the port. When disable this feature(set it to False), there will be no packages filtering, like security-group and address-pairs.
+        required: false
+      qos_policy:
+        type: string
+        description: The name or ID of QoS policy to attach to this port.
+        required: false
+      security_groups:
+        type: list
+        description: Security group IDs to associate with this port.
+        required: false
+      tags:
+        type: list
+        description: The tags to be added to the network.
+        required: false
+      value_specs:
+        type: map
+        description: Extra parameters to include in the request. Parameters are often specific to installed hardware or extensions.
+        required: false
+    attributes:
+      ip_address:
+        type: string
+
+  tosca.datatypess.nfv.VduCp.AddressPair:
+    derived_from: tosca.datatypes.Root
+    properties:
+      ip_address:
+        type: string
+      mac_address:
+        type: string
+        required: false
+
+  tosca.datatypess.nfv.VduCp.IP:
+    derived_from: tosca.datatypes.Root
+    properties:
+      ip_address:
+        type: string
+      subnet: 
+        type: string
+
+  tosca.nodes.nfv.Vdu.Compute.NovaServer:
+    derived_from: tosca.nodes.nfv.Vdu.Compute
+    description: extension to Vdu.Compute
+    properties:
+      admin_pass:
+        description: The administrator password for the server
+        type: string
+        required: false
+      availability_zone: 
+        description: Name of the availability zone for server placement
+        type: string
+        required: false
+      config_drive:
+        description: If True, enable config drive on the server
+        type: boolean
+        required: false
+      diskConfig:
+        description: Control how the disk is partitioned when the server is created
+        type: string
+        required: false
+      flavor:
+        description: The ID or name of the flavor to boot onto (you may instead use capability.host properties, which will find the best match based on desired CPU/Mem)
+        type: string
+        required: false
+      flavor_update_policy:
+        description: Policy on how to apply a flavor update; either by requesting a server resize or by replacing the entire server
+        type: string
+        required: false
+      image:
+        description: The ID or name of the image to boot with
+        type: string
+        required: false
+      image_update_policy: 
+        description: Policy on how to apply an image-id update; either by requesting a server rebuild or by replacing the entire server
+        type: string
+        required: false
+      key_name:
+        description: Name of keypair to inject into the server
+        type: string
+        required: false
+      metadata:
+        description: Arbitrary key/value metadata to store for this server. Both keys and values must be 255 characters or less. Non-string values will be serialized to JSON (and the serialized string must be 255 characters or less)
+        type: map
+        required: false
+      name: 
+        description: Server name
+        type: string
+        required: false
+      reservation_id:
+        description: A UUID for the set of servers being requested
+        type: string
+        required: false
+      scheduler_hints: 
+        description: Arbitrary key-value pairs specified by the client to help boot a server
+        type: map
+        required: false
+      security_groups:
+        description: List of security group names or IDs. Cannot be used if neutron ports are associated with this server; assign security groups to the ports instead
+        type: list
+        required: false
+      software_config_transport: 
+        description: >
+          How the server should receive the metadata required for software configuration. 
+          POLL_SERVER_CFN will allow calls to the cfn API action DescribeStackResource authenticated with the provided keypair. POLL_SERVER_HEAT will allow calls to the Heat API resource-show using the provided keystone credentials. 
+          POLL_TEMP_URL will create and populate a Swift TempURL with metadata for polling. 
+          ZAQAR_MESSAGE will create a dedicated zaqar queue and post the metadata for polling
+        type: string
+        required: false
+      user_data: 
+        description: User data script to be executed by cloud-init. Changes cause replacement of the resource by default, but can be ignored altogether by setting the `user_data_update_policy` property
+        type: string
+        required: false
+      user_data_params:
+        description: Add parameter options to be templated into the user_data (convenience prop provided to save using concat on large strings)
+        type: map
+        entry_schema:
+          description: templated value
+          type: string
+      user_data_format: 
+        description: >
+          How the user_data should be formatted for the server. 
+          For HEAT_CFNTOOLS, the user_data is bundled as part of the heat-cfntools cloud-init boot configuration data. 
+          For RAW the user_data is passed to Nova unmodified. 
+          For SOFTWARE_CONFIG user_data is bundled as part of the software config data, and metadata is derived from any associated SoftwareDeployment resources
+        type: string
+        required: false
+      user_data_update_policy:
+        description: Policy on how to apply a user_data update; either by ignoring it or by replacing the entire server
+        type: string
+        required: false
+
+  tosca.nodes.nfv.VnfVirtualLink.NeutronNetwork:
+    derived_from: tosca.nodes.Root
+    description: describes network connectivity between a VNFC instance based on this VDU and an internal VL 
+    properties:
+      name:
+        type: string
+        description: Name of the virtual link
+        required: true
+      admin_state_up:
+        type: boolean
+        description: A boolean value specifying the administrative status of the network.
+        required: false
+      dhcp_agent_ids: 
+        type: list
+        description: The IDs of the DHCP agent to schedule the network. Note that the default policy setting in Neutron restricts usage of this property to administrative users only.
+        required: false
+      dns_domain:
+        type: string
+        description: DNS domain associated with this network.
+        required: false
+      port_security_enabled:
+        type: boolean
+        description: Flag to enable/disable port security on the network. It provides the default value for the attribute of the ports created on this network.
+        required: false
+      qos_policy:
+        type: string
+        description: The name or ID of QoS policy to attach to this network.
+        required: false
+      shared:
+        type: string
+        description: Whether this network should be shared across all tenants. Note that the default policy setting restricts usage of this attribute to administrative users only.
+        required: false
+      tags:
+        type: list
+        description: The tags to be added to the network.
+        required: false
+      tenant_id:
+        type: string
+        description: The ID of the tenant which will own the network. Only administrative users can set the tenant identifier; this cannot be changed using authorization policies.
+        required: false
+      value_specs:
+        type: map
+        description: Extra parameters to include in the request. Parameters are often specific to installed hardware or extensions.
+        required: false
+    capabilities:
+      virtual_linkable:
+        type: tosca.capabilities.nfv.VirtualLinkable

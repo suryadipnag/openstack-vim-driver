@@ -6,7 +6,6 @@ import osvimdriver.tosca.definitions as tosca_definitions
 import toscaparser.common.exception as toscaparser_exceptions
 import yaml
 
-
 class ToscaValidationError(Exception):
     pass
 
@@ -29,28 +28,25 @@ class ToscaParserService(Service, ToscaParserCapability):
             raise ToscaValidationError(str(e)) from e
 
     def include_extensions(self, tosca_template_tpl):
-        with open(tosca_definitions.TYPE_EXTENSIONS_FILE) as extensions_file:
-            extensions = yaml.safe_load(extensions_file.read())
-        if 'node_types' in extensions:
-            if 'node_types' not in tosca_template_tpl:
-                tosca_template_tpl['node_types'] = {}
-            for node_type_key, node_type_def in extensions['node_types'].items():
-                if node_type_key not in tosca_template_tpl['node_types']:
-                    tosca_template_tpl['node_types'][node_type_key] = node_type_def
+        #with open(tosca_definitions.TYPE_EXTENSIONS_FILE) as extensions_file:
+        #    extensions = yaml.safe_load(extensions_file.read())
+        self.__add_extensions(tosca_definitions.TYPE_EXTENSIONS_FILE, tosca_template_tpl)
+        if 'imports' in tosca_template_tpl:
+            if type(tosca_template_tpl['imports']) == list and 'etsi_nfv_sol001' in tosca_template_tpl['imports']:
+                self.__add_sol001_extensions(tosca_template_tpl)
+                tosca_template_tpl['imports'].remove('etsi_nfv_sol001')
 
-    # Preferred way of adding extensions but the ToscaParser leaves the imported file open, which leads to python warnings for unclosed files
-    # def __not_used_include_extensions(self, tosca_template):
-    #    if 'imports' in tosca_template:
-    #        imports = tosca_template['imports']
-    #    else:
-    #        imports = []
-    #    imports.append({
-    #        'type_extensions': {
-    #            'file': tosca_definitions.TYPE_EXTENSIONS_FILE
-    #        }
-    #    })
-    #    tosca_template['imports'] = imports
-
+    def __add_sol001_extensions(self, tosca_template_tpl):
+        self.__add_extensions(tosca_definitions.ETSI_COMMON_TYPES_FILE, tosca_template_tpl)
+        self.__add_extensions(tosca_definitions.ETSI_VNFD_TYPES_FILE, tosca_template_tpl)
+        self.__add_extensions(tosca_definitions.NFV_EXTENSIONS_FILE, tosca_template_tpl)
+        
+    def __add_extensions(self, ext_file, tosca_template_tpl):
+        if 'imports' not in tosca_template_tpl:
+            tosca_template_tpl['imports'] = []
+        elif not isinstance(tosca_template_tpl['imports'], list):
+            raise ToscaValidationError(f'imports must be a list but was {type(tosca_template_tpl["imports"])}')
+        tosca_template_tpl['imports'].append(ext_file)
 
 class ToscaHeatTranslatorCapability(Capability):
 

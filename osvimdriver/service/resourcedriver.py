@@ -115,9 +115,21 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         if stack_id is None:
             kwargs = {}
             template_type = request_properties.get('template-type', None)
-            if template_type is not None and template_type.upper() == TOSCA_TEMPLATE_TYPE.upper():
+            if template_type == None:
+                # Try and guess based on files
+                # Heat to take precedence
+                if driver_files.has_file('heat.yaml') or driver_files.has_file('heat.yml'):
+                    template_type = HEAT_TEMPLATE_TYPE
+                elif driver_files.has_file('tosca.yaml') or driver_files.has_file('tosca.yml'):
+                    template_type = TOSCA_TEMPLATE_TYPE
+                else:
+                    # Default to Heat, there are no heat files but we'll let this fail later
+                    template_type = HEAT_TEMPLATE_TYPE
+            else:
+                template_type = template_type.upper()
+            if template_type == TOSCA_TEMPLATE_TYPE.upper():
                 heat_template = self.__get_heat_template_from_tosca(driver_files)
-            elif template_type is None or template_type.upper() == HEAT_TEMPLATE_TYPE.upper():
+            elif template_type == HEAT_TEMPLATE_TYPE.upper():
                 heat_template = self.__get_heat_template(driver_files)
                 files = self.__gather_additional_heat_files(driver_files)
                 kwargs['files'] = files
