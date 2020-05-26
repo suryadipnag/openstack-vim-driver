@@ -236,7 +236,7 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         with open(template_path, 'r') as f:
             template = f.read()
         try:
-            heat_template = self.heat_translator.generate_heat_template(template)
+            heat_template = self.heat_translator.generate_heat_template(template, template_path=template_path)
         except ToscaValidationError as e:
             raise InvalidDriverFilesError(str(e)) from e
         logger.debug('Translated Tosca template:\n%s\nto Heat template:\n%s', template, heat_template)

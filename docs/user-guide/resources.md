@@ -77,6 +77,64 @@ Lifecycle/
     heat.yaml
 ```
 
+### Multiple Heat Files
+
+In Heat you may reference additional files in a few ways: 
+
+```
+# Example 1
+apache_server:
+  type: "OS::Nova::Server"
+  properties: 
+    user_data: { "get_file": "user_data.conf" }
+
+# Example 2
+ap_router: 
+    type: apache/router.yaml
+```
+
+To reference files in this way, they must be included in a `files` directory:
+
+```
+Lifecycle/
+  openstack/
+    files/
+      apache/
+        router.yaml
+      user_data.conf
+    heat.yaml
+```
+
+Each file in this directory is available using the path relative from the root `heat.yaml` file. 
+
+For example, with the following file structure:
+
+```
+Lifecycle/
+  openstack/
+    files/
+      core/
+        resources.yaml
+        nested-core/
+          more-resources.yaml
+      top-level-resources.yaml
+    heat.yaml
+```
+
+The following paths may be used in a Heat template (examples shown with `type` but can be used on `get_file` also):
+
+```
+resources:
+  core: 
+    type: core/resources.yaml
+
+  nested-core:
+    type: core/nested-core/more-resources.yaml
+
+  top:
+    type: top-level-resources.yaml
+```
+
 ## TOSCA Support
 
 The Openstack VIM driver can create any TOSCA types from v1.0 of the [simple profile](http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html) that are translatable to a known Heat type. The ability to translate is determined by two aspects:
@@ -101,3 +159,24 @@ Lifecycle/
 ```
 
 To read more about the TOSCA types supported by this driver, see [TOSCA templates](./tosca-templates.md)
+
+### Multiple Tosca Files
+
+To import additional TOSCA files you must include a relative path (using `./`) in the `imports` section of your TOSCA template:
+
+```
+Lifecycle/
+  openstack/
+    tosca.yaml
+    more-tosca.yaml
+```
+
+In tosca.yaml:
+```yaml
+imports:
+  - ./more-tosca.yaml
+```
+
+If you forget to add `./` then an error will be raised. 
+
+**Note:** Currently only additional `node_types` are used from this imported file. 
