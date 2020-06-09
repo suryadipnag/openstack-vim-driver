@@ -1,5 +1,17 @@
 # Change Log
 
+## [2.0.1](https://github.com/accanto-systems/openstack-vim-driver/tree/2.0.1) (2020-06-09)
+[Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/2.0.0...2.0.1)
+
+**Implemented enhancements:**
+- Increase default number of processes [\#53](https://github.com/accanto-systems/openstack-vim-driver/issues/53)
+
+**Fixed bugs:**
+- NoBrokersAvailable exceptions during Kafka sends and receives [\#57](https://github.com/accanto-systems/openstack-vim-driver/issues/57)
+
+**Documentation:**
+- Docs: Deployment Location - Use of string, e.g. os_cacert in deployment location invalid [\#52](https://github.com/accanto-systems/openstack-vim-driver/issues/52)
+
 ## [2.0.0](https://github.com/accanto-systems/openstack-vim-driver/tree/2.0.0) (2020-05-19)
 [Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/1.0.0...2.0.0)
 
