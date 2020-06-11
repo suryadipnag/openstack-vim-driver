@@ -36,14 +36,17 @@ app:
       ## WSGI_CONTAINER can be uwsgi or gunicorn
       WSGI_CONTAINER: uwsgi
       ## the number of processes and threads to spawn to handle requests
-      NUM_PROCESSES: "8"
-      NUM_THREADS: "2"
+      NUM_PROCESSES: "4"
+      NUM_THREADS: "4"
 
     ## ovd_config.yml (driver configuration) overrides
     override:
       messaging:
         # Kafka connection url
         connection_address: foundation-kafka:9092
+        # timeout waiting for initial version check on Kafka producer/consumer initialisation
+        # 5000ms is usually sufficient, increase if problems with NoBrokersAvailable occur
+        api_version_auto_timeout_ms: 5000
 
     security:
       ssl:
