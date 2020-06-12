@@ -20,7 +20,6 @@ class OSNfvVduCompute(ToscaNfvVduCompute):
     def handle_properties(self):
         super().handle_properties()
         tosca_props = self.get_tosca_props()
-        self.properties = {}
         user_data_params = None
         user_data = None
         for key, value in tosca_props.items():

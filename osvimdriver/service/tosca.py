@@ -1,3 +1,4 @@
+import logging
 from ignition.service.framework import Capability, interface, Service
 from toscaparser.tosca_template import ToscaTemplate
 from translator.hot.tosca_translator import TOSCATranslator
@@ -6,6 +7,8 @@ import osvimdriver.tosca.definitions as tosca_definitions
 import toscaparser.common.exception as toscaparser_exceptions
 import yaml
 import os
+
+logger = logging.getLogger(__name__)
 
 class ToscaValidationError(Exception):
     pass
@@ -91,6 +94,7 @@ class ToscaHeatTranslatorService(Service, ToscaHeatTranslatorCapability):
         translation_dict_key = 'main_hot'
         heat_translations = heat_translator.translate_to_yaml_files_dict(translation_dict_key)
         heat_result = heat_translations[translation_dict_key]
+        logger.debug('Translated Heat: {0}'.format(heat_result))
         return heat_result
 
 
