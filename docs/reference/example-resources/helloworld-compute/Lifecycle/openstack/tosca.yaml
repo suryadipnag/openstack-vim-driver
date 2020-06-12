@@ -15,7 +15,7 @@ topology_template:
 
   node_templates:
     hello_world_server:
-      type: os.ext.nodes.Compute
+      type: tosca.nodes.Compute.NovaServer
       properties:
         image: { get_input: image }
         key_name: { get_input: key_name }

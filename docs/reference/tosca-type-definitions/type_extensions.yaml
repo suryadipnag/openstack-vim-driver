@@ -6,7 +6,7 @@ node_types:
   ##########################
   ## Custom Openstack Types
   ############################ 
-  ## The following types are Openstack specific
+
   ### Neutron
   tosca.datatypess.network.NeutronAllocationPool:
     derived_from: tosca.datatypes.Root

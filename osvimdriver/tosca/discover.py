@@ -173,7 +173,7 @@ class Props:
 
 class NetworkTranslator:
 
-    TOSCA = Props(TYPES=['tosca.nodes.network.Network', 'os.ext.nodes.network.Network'],
+    TOSCA = Props(TYPES=['tosca.nodes.network.Network', 'tosca.nodes.network.NetworkWithAttr'],
                   PROPS=Props(NAME='network_name',
                               ID='network_id',
                               SEGMENTATION_ID='segmentation_id',
