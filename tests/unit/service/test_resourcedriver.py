@@ -133,7 +133,8 @@ class TestResourceDriverHandler(unittest.TestCase):
             f.write(self.heat_template)
         tosca_driver_files_path = tempfile.mkdtemp()
         self.tosca_template = 'tosca_template'
-        with open(os.path.join(tosca_driver_files_path, 'tosca.yaml'), 'w') as f:
+        self.tosca_template_path = os.path.join(tosca_driver_files_path, 'tosca.yaml')
+        with open(self.tosca_template_path, 'w') as f:
             f.write(self.tosca_template)
         self.discover_template = 'discover_template'
         with open(os.path.join(tosca_driver_files_path, 'discover.yaml'), 'w') as f:
@@ -237,6 +238,23 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.assert_internal_resource(result.associated_topology, '1')
         self.mock_location_translator.from_deployment_location.assert_called_once_with(self.deployment_location)
         self.mock_heat_driver.create_stack.assert_called_once_with(ANY, self.heat_template, {'propA': 'valueA'})
+
+    def test_create_infrastructure_includes_heat_files(self):
+        files_path = os.path.join(self.heat_driver_files.root_path, 'files')
+        os.makedirs(files_path)
+        os.makedirs(os.path.join(files_path, 'subdir'))
+        with open(os.path.join(files_path, 'subdir', 'fileA.yaml'), 'w') as f:
+            f.write('fileA: test')
+        with open(os.path.join(files_path, 'fileB.yaml'), 'w') as f:
+            f.write('fileB: test')
+        self.mock_heat_driver.create_stack.return_value = '1'
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        _ = driver.execute_lifecycle('Create', self.heat_driver_files, self.system_properties, self.resource_properties, {}, AssociatedTopology(), self.deployment_location)
+        self.mock_heat_driver.create_stack.assert_called_once_with(ANY, self.heat_template, {'propA': 'valueA'}, files={
+            os.path.join('subdir', 'fileA.yaml'): 'fileA: test',
+            'fileB.yaml': 'fileB: test',
+        })
+
     
     def test_create_infrastructure_uses_system_prop(self):
         self.mock_heat_input_utils.filter_used_properties.return_value = {'system_resourceId': '123'}
@@ -258,7 +276,7 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.assertIsInstance(result, LifecycleExecuteResponse)
         self.assert_request_id(result.request_id, 'Create', '1')
         self.assert_internal_resource(result.associated_topology, '1')
-        self.mock_heat_translator.generate_heat_template.assert_called_once_with(self.tosca_template)
+        self.mock_heat_translator.generate_heat_template.assert_called_once_with(self.tosca_template, template_path=self.tosca_template_path)
         self.mock_location_translator.from_deployment_location.assert_called_once_with(self.deployment_location)
         self.mock_heat_driver.create_stack.assert_called_once_with(ANY, self.mock_heat_translator.generate_heat_template.return_value, {'propA': 'valueA'})
 
