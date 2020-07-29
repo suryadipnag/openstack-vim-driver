@@ -119,6 +119,8 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.tosca_request_properties = self.__tosca_request_properties()
         self.deployment_location = self.__deployment_location()
         self.created_associated_topology = self.__created_associated_topology()
+        self.created_adopted_topology = self.__created_associated_topology(True)
+        
 
     def tearDown(self):
         if os.path.exists(self.heat_driver_files.root_path):
@@ -161,9 +163,11 @@ class TestResourceDriverHandler(unittest.TestCase):
     def __deployment_location(self):
         return {'name': 'mock_location'}
 
-    def __created_associated_topology(self):
+    def __created_associated_topology(self, adopt=False):
         associated_topology = AssociatedTopology()
         associated_topology.add_entry('InfrastructureStack', '1', 'Openstack')
+        if adopt==True:
+            associated_topology.add_entry('adoptTopology', '555', 'Openstack')
         return associated_topology
 
     def assert_request_id(self, request_id, expected_prefix, expected_stack_id):
@@ -294,6 +298,24 @@ class TestResourceDriverHandler(unittest.TestCase):
             driver.execute_lifecycle('Create', self.tosca_driver_files, self.system_properties, self.resource_properties, request_properties, AssociatedTopology(), self.deployment_location)
         self.assertEqual(str(context.exception), 'Cannot create using template of type \'YAML\'. Must be one of: [\'TOSCA\', \'HEAT\']')
 
+    def test_adopt_infrastructure(self):
+        self.mock_heat_driver.create_stack.return_value = '1'
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        self.resource_properties['stack_id'] = {'type': 'string', 'value': 'MY_STACK_ID'}        
+        result = driver.execute_lifecycle('Adopt', self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_adopted_topology, self.deployment_location)
+        self.assertIsInstance(result, LifecycleExecuteResponse)        
+        self.assert_request_id(result.request_id, 'Adopt', '555')        
+        self.assert_internal_resource(result.associated_topology, '555')
+        self.mock_location_translator.from_deployment_location.assert_called_once_with(self.deployment_location)
+        # self.mock_heat_driver.create_stack.assert_called_once_with(ANY, self.heat_template, {'propA': 'valueA'})
+
+    def test_adopt_infrastructure_with_stack_id_as_none(self):
+        self.mock_heat_driver.create_stack.return_value = '1'
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        with self.assertRaises(InvalidRequestError) as context:
+            driver.execute_lifecycle('Adopt', self.heat_driver_files, self.system_properties, self.resource_properties, {}, AssociatedTopology(), self.deployment_location)
+        self.assertEqual(str(context.exception), 'You must supply stack_id in associated_topology')
+
     def test_delete_infrastructure(self):
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         result = driver.execute_lifecycle('Delete', self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_associated_topology, self.deployment_location)
@@ -312,7 +334,7 @@ class TestResourceDriverHandler(unittest.TestCase):
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         with self.assertRaises(InvalidRequestError) as context:
             driver.execute_lifecycle('Start', self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_associated_topology, self.deployment_location)
-        self.assertEqual(str(context.exception), 'Openstack driver only supports Create and Delete transitions, not Start')
+        self.assertEqual(str(context.exception), 'Openstack driver only supports Create, Adopt and Delete transitions, not Start')
 
     def test_get_lifecycle_execution_for_delete_stack_not_found(self):
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)

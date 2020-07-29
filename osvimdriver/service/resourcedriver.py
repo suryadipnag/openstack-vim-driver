@@ -31,9 +31,11 @@ HEAT_TEMPLATE_TYPE = 'HEAT'
 REQUEST_ID_SEPARATOR = '::'
 CREATE_REQUEST_PREFIX = 'Create'
 DELETE_REQUEST_PREFIX = 'Delete'
+ADOPT_REQUEST_PREFIX = 'Adopt'
 
 STACK_RESOURCE_TYPE = 'Openstack'
 STACK_NAME = 'InfrastructureStack'
+ADOPT_NAME = 'adoptTopology'
 
 class AdditionalResourceDriverProperties(ConfigurationPropertiesGroup, Service, Capability):
 
@@ -85,10 +87,12 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
             openstack_location = self.location_translator.from_deployment_location(deployment_location)
             if lifecycle_name.upper() == 'CREATE':
                 return self.__handle_create(driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location)
+            elif lifecycle_name.upper() == 'ADOPT':
+                return self.__handle_adopt(driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location)
             elif lifecycle_name.upper() == 'DELETE':
                 return self.__handle_delete(driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location)
             else:
-                raise InvalidRequestError(f'Openstack driver only supports Create and Delete transitions, not {lifecycle_name}')
+                raise InvalidRequestError(f'Openstack driver only supports Create, Adopt and Delete transitions, not {lifecycle_name}')
         finally:
             if not self.resource_driver_config.keep_files:
                 try:
@@ -145,6 +149,26 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
                 stack_name = 's' + str(uuid.uuid4())
             stack_id = heat_driver.create_stack(stack_name, heat_template, heat_inputs, **kwargs)
         request_id = self.__build_request_id(CREATE_REQUEST_PREFIX, stack_id)
+        associated_topology = self.__build_associated_topology_response(stack_id)
+        return LifecycleExecuteResponse(request_id, associated_topology=associated_topology)
+
+    def __handle_adopt(self, driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location):
+        stack_resource_entry = associated_topology.get(ADOPT_NAME)
+        if stack_resource_entry is None:
+            # There is no Stack associated to this Resource raise error
+             raise InvalidRequestError("You must supply stack_id in associated_topology")            
+           
+        stack_id = stack_resource_entry.element_id
+        heat_driver = openstack_location.heat_driver        
+
+        if stack_id != None and len(stack_id.strip())!=0 and stack_id.strip() != "0":
+            try:
+                # Check for valid stack
+                heat_driver.get_stack(stack_id.strip())
+            except StackNotFoundError as e:
+                raise InfrastructureNotFoundError(str(e)) from e
+
+        request_id = self.__build_request_id(ADOPT_REQUEST_PREFIX, stack_id)
         associated_topology = self.__build_associated_topology_response(stack_id)
         return LifecycleExecuteResponse(request_id, associated_topology=associated_topology)
 
@@ -288,8 +312,8 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         request_type, stack_id, operation_id = self.__split_request_id(request_id)
         stack_status = stack.get('stack_status', None)
         failure_details = None
-        if request_type == CREATE_REQUEST_PREFIX:
-            status = self.__determine_create_status(request_id, stack_id, stack_status)
+        if request_type == CREATE_REQUEST_PREFIX or request_type == ADOPT_REQUEST_PREFIX:
+            status = self.__determine_create_status(request_id, stack_id, stack_status)         
         else:
             status = self.__determine_delete_status(request_id, stack_id, stack_status)
         if status == STATUS_FAILED:
@@ -298,9 +322,10 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
             status_reason = stack.get('stack_status_reason', None)
         outputs = None
         associated_topology = None
-        if request_type == CREATE_REQUEST_PREFIX:
+        # TODO ADOPT VALIDATION ???
+        if request_type == CREATE_REQUEST_PREFIX or request_type == ADOPT_REQUEST_PREFIX:
             outputs_from_stack = stack.get('outputs', [])
-            outputs = self.__translate_outputs_to_values_dict(outputs_from_stack)
+            outputs = self.__translate_outputs_to_values_dict(outputs_from_stack)                               
         return LifecycleExecution(request_id, status, failure_details=failure_details, outputs=outputs)
 
     def __determine_create_status(self, request_id, stack_id, stack_status):
