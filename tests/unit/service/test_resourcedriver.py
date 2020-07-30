@@ -299,22 +299,28 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.assertEqual(str(context.exception), 'Cannot create using template of type \'YAML\'. Must be one of: [\'TOSCA\', \'HEAT\']')
 
     def test_adopt_infrastructure(self):
-        self.mock_heat_driver.create_stack.return_value = '1'
-        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
-        self.resource_properties['stack_id'] = {'type': 'string', 'value': 'MY_STACK_ID'}        
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)             
         result = driver.execute_lifecycle('Adopt', self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_adopted_topology, self.deployment_location)
         self.assertIsInstance(result, LifecycleExecuteResponse)        
         self.assert_request_id(result.request_id, 'Adopt', '555')        
         self.assert_internal_resource(result.associated_topology, '555')
         self.mock_location_translator.from_deployment_location.assert_called_once_with(self.deployment_location)
-        # self.mock_heat_driver.create_stack.assert_called_once_with(ANY, self.heat_template, {'propA': 'valueA'})
 
     def test_adopt_infrastructure_with_stack_id_as_none(self):
-        self.mock_heat_driver.create_stack.return_value = '1'
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         with self.assertRaises(InvalidRequestError) as context:
             driver.execute_lifecycle('Adopt', self.heat_driver_files, self.system_properties, self.resource_properties, {}, AssociatedTopology(), self.deployment_location)
         self.assertEqual(str(context.exception), 'You must supply stack_id in associated_topology')
+
+    def test_adopt_deleted_infrastructure(self):
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '555',
+            'stack_status': 'DELETE_COMPLETE'
+        }
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)             
+        with self.assertRaises(InvalidRequestError) as context:
+            driver.execute_lifecycle('Adopt', self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_adopted_topology, self.deployment_location)
+        self.assertEqual(str(context.exception), 'The stack \'555\' has been deleted')
 
     def test_delete_infrastructure(self):
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
@@ -389,6 +395,24 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.assertEqual(execution.outputs, {'outputA': 'valueA', 'outputB': 'valueB'})
         self.assertEqual(execution.associated_topology, None)
 
+    def test_get_lifecycle_execution_adopt_complete(self):
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '1',
+            'stack_status': 'CREATE_COMPLETE',
+            'outputs': [
+                {'output_key': 'outputA', 'output_value': 'valueA'},
+                {'output_key': 'outputB', 'output_value': 'valueB'}
+            ]
+        }
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        execution = driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertIsInstance(execution, LifecycleExecution)
+        self.assertEqual(execution.request_id, 'Adopt::1::request123')
+        self.assertEqual(execution.status, 'COMPLETE')
+        self.assertEqual(execution.failure_details, None)
+        self.assertEqual(execution.outputs, {'outputA': 'valueA', 'outputB': 'valueB'})
+        self.assertEqual(execution.associated_topology, None)
+
     def test_get_lifecycle_execution_create_complete_no_outputs(self):
         self.mock_heat_driver.get_stack.return_value = {
             'id': '1',
@@ -428,6 +452,22 @@ class TestResourceDriverHandler(unittest.TestCase):
         execution = driver.get_lifecycle_execution('Create::1::request123', self.deployment_location)
         self.assertIsInstance(execution, LifecycleExecution)
         self.assertEqual(execution.request_id, 'Create::1::request123')
+        self.assertEqual(execution.status, 'FAILED')
+        self.assertEqual(execution.failure_details.failure_code, 'INFRASTRUCTURE_ERROR')
+        self.assertEqual(execution.failure_details.description, 'For the test')
+        self.assertEqual(execution.outputs, None)
+        self.assertEqual(execution.associated_topology, None)
+
+    def test_get_lifecycle_execution_adopt_failed(self):
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '1',
+            'stack_status': 'ADOPT_FAILED',
+            'stack_status_reason': 'For the test'
+        }
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        execution = driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertIsInstance(execution, LifecycleExecution)
+        self.assertEqual(execution.request_id, 'Adopt::1::request123')
         self.assertEqual(execution.status, 'FAILED')
         self.assertEqual(execution.failure_details.failure_code, 'INFRASTRUCTURE_ERROR')
         self.assertEqual(execution.failure_details.description, 'For the test')
