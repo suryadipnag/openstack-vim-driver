@@ -54,11 +54,12 @@ class ConnectionRunner:
 
     def __created_associated_topology(self, adopt=False):
         associated_topology = AssociatedTopology()
-        associated_topology.add_entry('InfrastructureStack', '1', 'Openstack')
         if adopt==True:
-            associated_topology.add_entry('adoptTopology', '2c8d23db-2974-405a-9f16-da1e148dd469', 'Openstack')
+            associated_topology.add_entry('027dec82-9110-4534-8e33-c1313daa3d1f', '027dec82-9110-4534-8e33-c1313daa3d1f', 'Openstack')
             #associated_topology.add_entry('adoptTopology', '41589088-72d7-4232-a6cb-3c74392ff29f', 'Openstack')
             #associated_topology.add_entry('adoptTopology', '48c965cd-e846-4e92-ab63-493babaecf25', 'Openstack')
+        else:
+            associated_topology.add_entry('InfrastructureStack', '1', 'Openstack')    
         return associated_topology
 
 

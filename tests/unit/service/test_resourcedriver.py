@@ -119,7 +119,7 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.tosca_request_properties = self.__tosca_request_properties()
         self.deployment_location = self.__deployment_location()
         self.created_associated_topology = self.__created_associated_topology()
-        self.created_adopted_topology = self.__created_associated_topology(True)
+        self.created_adopted_topology = self.__created_adopted_topology()
         
 
     def tearDown(self):
@@ -163,12 +163,16 @@ class TestResourceDriverHandler(unittest.TestCase):
     def __deployment_location(self):
         return {'name': 'mock_location'}
 
-    def __created_associated_topology(self, adopt=False):
+    def __created_associated_topology(self):
         associated_topology = AssociatedTopology()
         associated_topology.add_entry('InfrastructureStack', '1', 'Openstack')
-        if adopt==True:
-            associated_topology.add_entry('adoptTopology', '555', 'Openstack')
         return associated_topology
+
+    def __created_adopted_topology(self):
+        associated_topology = AssociatedTopology()
+        associated_topology.add_entry('555', '555', 'Openstack')
+        return associated_topology
+
 
     def assert_request_id(self, request_id, expected_prefix, expected_stack_id):
         self.assertTrue(request_id.startswith(expected_prefix + '::' + expected_stack_id + '::'))

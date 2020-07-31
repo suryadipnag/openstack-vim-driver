@@ -35,7 +35,6 @@ ADOPT_REQUEST_PREFIX = 'Adopt'
 
 STACK_RESOURCE_TYPE = 'Openstack'
 STACK_NAME = 'InfrastructureStack'
-ADOPT_NAME = 'adoptTopology'
 
 class AdditionalResourceDriverProperties(ConfigurationPropertiesGroup, Service, Capability):
 
@@ -153,7 +152,14 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         return LifecycleExecuteResponse(request_id, associated_topology=associated_topology)
 
     def __handle_adopt(self, driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location):
-        stack_resource_entry = associated_topology.get(ADOPT_NAME)
+        
+        stack_resource_entry = None
+        # Only expect one associated_topology so break after first
+        for key, value in associated_topology.to_dict().items():
+            stack_resource_entry = associated_topology.get(str(key))
+            #print(f'{key}={value}')            
+            break
+        
         if stack_resource_entry is None:
             # There is no Stack associated to this Resource raise error
              raise InvalidRequestError("You must supply stack_id in associated_topology")            
