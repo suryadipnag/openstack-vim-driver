@@ -310,11 +310,19 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.assert_internal_resource(result.associated_topology, '555')
         self.mock_location_translator.from_deployment_location.assert_called_once_with(self.deployment_location)
 
-    def test_adopt_infrastructure_with_stack_id_as_none(self):
+    def test_adopt_infrastructure_with_no_associated_topology(self):
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         with self.assertRaises(InvalidRequestError) as context:
             driver.execute_lifecycle('Adopt', self.heat_driver_files, self.system_properties, self.resource_properties, {}, AssociatedTopology(), self.deployment_location)
-        self.assertEqual(str(context.exception), 'You must supply stack_id in associated_topology')
+        self.assertEqual(str(context.exception), 'You must supply exactly one stack_id to adopt in associated_topology')
+
+    def test_adopt_infrastructure_with_to_many_associated_topology(self):
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)                     
+        associated_topology = self.created_adopted_topology
+        self.created_adopted_topology.add_entry('556', '556', 'Openstack')
+        with self.assertRaises(InvalidRequestError) as context:
+            driver.execute_lifecycle('Adopt', self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_adopted_topology, self.deployment_location)
+        self.assertEqual(str(context.exception), 'You must supply exactly one stack_id to adopt in associated_topology')
 
     def test_adopt_deleted_infrastructure(self):
         self.mock_heat_driver.get_stack.return_value = {

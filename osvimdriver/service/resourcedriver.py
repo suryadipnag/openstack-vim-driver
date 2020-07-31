@@ -151,18 +151,19 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         associated_topology = self.__build_associated_topology_response(stack_id)
         return LifecycleExecuteResponse(request_id, associated_topology=associated_topology)
 
-    def __handle_adopt(self, driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location):
-        
+    def __handle_adopt(self, driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location):        
         stack_resource_entry = None
+        if (associated_topology is None or len(associated_topology.to_dict()) != 1):
+            # Expect one adopt stack only per call!
+            raise InvalidRequestError("You must supply exactly one stack_id to adopt in associated_topology")
         # Only expect one associated_topology so break after first
         for key, value in associated_topology.to_dict().items():
             stack_resource_entry = associated_topology.get(str(key))
-            #print(f'{key}={value}')            
             break
         
-        if stack_resource_entry is None:
+        if stack_resource_entry is None:            
             # There is no Stack associated to this Resource raise error
-             raise InvalidRequestError("You must supply stack_id in associated_topology")            
+            raise InvalidRequestError("You must supply the stack_id in associated_topology")            
            
         stack_id = stack_resource_entry.element_id
         heat_driver = openstack_location.heat_driver        
@@ -173,10 +174,12 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
                 stack_to_adopt = heat_driver.get_stack(stack_id.strip())
             except StackNotFoundError as e:
                 raise InfrastructureNotFoundError(str(e)) from e
-
+        # get the status and check it's ok 
         stack_status = stack_to_adopt.get('stack_status', None)
         if stack_status in [OS_STACK_STATUS_DELETE_COMPLETE, OS_STACK_STATUS_DELETE_IN_PROGRESS]:
             raise InvalidRequestError("The stack \'"+stack_id+"\' has been deleted")
+        
+        #TODO - should we check for more status errors usch as OS_STACK_STATUS_CREATE_FAILED - or is that handled by the get later
 
         request_id = self.__build_request_id(ADOPT_REQUEST_PREFIX, stack_id)
         associated_topology = self.__build_associated_topology_response(stack_id)
