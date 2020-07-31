@@ -56,8 +56,6 @@ class ConnectionRunner:
         associated_topology = AssociatedTopology()
         if adopt==True:
             associated_topology.add_entry('027dec82-9110-4534-8e33-c1313daa3d1f', '027dec82-9110-4534-8e33-c1313daa3d1f', 'Openstack')
-            #associated_topology.add_entry('adoptTopology', '41589088-72d7-4232-a6cb-3c74392ff29f', 'Openstack')
-            #associated_topology.add_entry('adoptTopology', '48c965cd-e846-4e92-ab63-493babaecf25', 'Openstack')
         else:
             associated_topology.add_entry('InfrastructureStack', '1', 'Openstack')    
         return associated_topology
@@ -74,38 +72,31 @@ class ConnectionRunner:
                 "os_auth_user_domain_name": "Default",
                 "os_auth_api": "identity/v3",
                 "os_api_url": "http://9.46.89.226",
-                "os_auth_project_id": "701600a059af40e1865a3c494288712a"},
-                # "os_auth_project_name": "Brownfield",
-                # "os_auth_project_domain_name": "default",
-                # "os_auth_username": "admin",
-                # "os_auth_password": "password", 
-                # "os_auth_user_domain_name": "Default",
-                # "os_auth_api": "identity/v3",
-                # "os_api_url": "http://9.46.87.109",
-                # "os_auth_project_id": "de1a51da2de142caa35de6425108b9b6"},                
+                "os_auth_project_id": "701600a059af40e1865a3c494288712a"},             
             "type": "Openstack"
         }             
 
     def doIt(self):
         connectTest = OSConnector()
         driver = connectTest.setupResourceDriver()
-
+        print("Set Up parameters");
         self.__create_mock_driver_files()       
         self.resource_properties = self.__resource_properties()
         self.system_properties = self.__system_properties()        
         self.created_adopted_topology = self.__created_associated_topology(True)
         self.deployment_location = self.__deployment_location()
 
-        print(str(self.created_adopted_topology))
-        executionRequestResponse = driver.execute_lifecycle("Adopt", self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_adopted_topology, self.deployment_location)
+        print("Call execute_lifecycle to Adopt:" +str(self.created_adopted_topology));
 
-        print("executionRequestResponse.request_id = "+str(executionRequestResponse.request_id))
+        executionRequestResponse = driver.execute_lifecycle("Adopt", self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_adopted_topology, self.deployment_location)
+       
+        print("Call get_lifecycle_execution... for request: "+str(executionRequestResponse.request_id))
         executionResponse = driver.get_lifecycle_execution(executionRequestResponse.request_id, self.deployment_location)
         
         print("response: "+executionResponse.status)
         print("response outputs: "+str(executionResponse.outputs))
         print("request ID: "+str(executionResponse.request_id))
 
-print("start: " + __name__)
+
 runner = ConnectionRunner()
 runner.doIt()
