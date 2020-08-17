@@ -2,6 +2,7 @@ import uuid
 import tempfile
 import shutil
 import os
+import time
 from ignition.service.resourcedriver import InfrastructureNotFoundError, InvalidDriverFilesError, InvalidRequestError
 from ignition.model.references import FindReferenceResponse, FindReferenceResult
 from ignition.model.associated_topology import AssociatedTopology
@@ -91,8 +92,16 @@ class ConnectionRunner:
         executionRequestResponse = driver.execute_lifecycle("Adopt", self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_adopted_topology, self.deployment_location)
        
         print("Call get_lifecycle_execution... for request: "+str(executionRequestResponse.request_id))
-        executionResponse = driver.get_lifecycle_execution(executionRequestResponse.request_id, self.deployment_location)
         
+        for x in range(0, 6): 
+            executionResponse = driver.get_lifecycle_execution(executionRequestResponse.request_id, self.deployment_location)
+            if executionResponse.status == 'IN_PROGRESS':
+                executionResponse = driver.get_lifecycle_execution(executionRequestResponse.request_id, self.deployment_location)
+                print("In Progress, wait 5s... "+str(x))
+                time.sleep(5)
+            else:
+                break
+
         print("response: "+executionResponse.status)
         print("response outputs: "+str(executionResponse.outputs))
         print("request ID: "+str(executionResponse.request_id))

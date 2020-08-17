@@ -24,6 +24,10 @@ OS_STACK_STATUS_ADOPT_FAILED = 'ADOPT_FAILED'
 OS_STACK_STATUS_DELETE_IN_PROGRESS = 'DELETE_IN_PROGRESS'
 OS_STACK_STATUS_DELETE_COMPLETE = 'DELETE_COMPLETE'
 OS_STACK_STATUS_DELETE_FAILED = 'DELETE_FAILED'
+OS_STACK_STATUS_RESUME_IN_PROGRESS = 'RESUME_IN_PROGRESS'
+OS_STACK_STATUS_RESUME_COMPLETE = 'RESUME_COMPLETE'
+OS_STACK_STATUS_SUSPEND_IN_PROGRESS = 'SUSPEND_IN_PROGRESS'
+OS_STACK_STATUS_SUSPEND_COMPLETE = 'SUSPEND_COMPLETE'
 
 TOSCA_TEMPLATE_TYPE = 'TOSCA'
 HEAT_TEMPLATE_TYPE = 'HEAT'
@@ -335,17 +339,19 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
             status_reason = stack.get('stack_status_reason', None)
         outputs = None
         associated_topology = None
-        # TODO ADOPT VALIDATION ???
         if request_type == CREATE_REQUEST_PREFIX or request_type == ADOPT_REQUEST_PREFIX:
             outputs_from_stack = stack.get('outputs', [])
             outputs = self.__translate_outputs_to_values_dict(outputs_from_stack)                               
         return LifecycleExecution(request_id, status, failure_details=failure_details, outputs=outputs)
 
     def __determine_create_status(self, request_id, stack_id, stack_status):
-        if stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_ADOPT_IN_PROGRESS]:
+        request_type, stack_id, operation_id = self.__split_request_id(request_id)
+        if stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_ADOPT_IN_PROGRESS, OS_STACK_STATUS_RESUME_IN_PROGRESS]:
             create_status = STATUS_IN_PROGRESS
-        elif stack_status in [OS_STACK_STATUS_CREATE_COMPLETE, OS_STACK_STATUS_ADOPT_COMPLETE]:
+        elif stack_status in [OS_STACK_STATUS_CREATE_COMPLETE, OS_STACK_STATUS_ADOPT_COMPLETE, OS_STACK_STATUS_RESUME_COMPLETE]:
             create_status = STATUS_COMPLETE
+        elif request_type == ADOPT_REQUEST_PREFIX and stack_status in [OS_STACK_STATUS_SUSPEND_IN_PROGRESS, OS_STACK_STATUS_SUSPEND_COMPLETE]:
+            raise ResourceDriverError(f'Cannot Adopt request \'{request_id}\' as the current Stack status is \'{stack_status}\' which is not a valid value. Stack must be Resumed first.')            
         elif stack_status in [OS_STACK_STATUS_CREATE_FAILED, OS_STACK_STATUS_ADOPT_FAILED]:
             create_status = STATUS_FAILED
         else:
