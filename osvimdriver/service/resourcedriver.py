@@ -28,6 +28,14 @@ OS_STACK_STATUS_RESUME_IN_PROGRESS = 'RESUME_IN_PROGRESS'
 OS_STACK_STATUS_RESUME_COMPLETE = 'RESUME_COMPLETE'
 OS_STACK_STATUS_SUSPEND_IN_PROGRESS = 'SUSPEND_IN_PROGRESS'
 OS_STACK_STATUS_SUSPEND_COMPLETE = 'SUSPEND_COMPLETE'
+OS_STACK_STATUS_CHECK_COMPLETE = 'CHECK_COMPLETE'
+OS_STACK_STATUS_CHECK_IN_PROGRESS='CHECK_IN_PROGRESS'
+OS_STACK_STATUS_CHECK_FAILED='CHECK_FAILED'
+OS_STACK_STATUS_INIT_COMPLETE='INIT_COMPLETE'
+OS_STACK_STATUS_UPDATE_COMPLETE='UPDATE_COMPLETE'
+OS_STACK_STATUS_ROLLBACK_COMPLETE='ROLLBACK_COMPLETE'
+OS_STACK_STATUS_SNAPSHOT_COMPLETE='SNAPSHOT_COMPLETE'
+
 
 TOSCA_TEMPLATE_TYPE = 'TOSCA'
 HEAT_TEMPLATE_TYPE = 'HEAT'
@@ -183,8 +191,6 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         if stack_status in [OS_STACK_STATUS_DELETE_COMPLETE, OS_STACK_STATUS_DELETE_IN_PROGRESS]:
             raise InvalidRequestError("The stack \'"+stack_id+"\' has been deleted")
         
-        #TODO - should we check for more status errors usch as OS_STACK_STATUS_CREATE_FAILED - or is that handled by the get later
-
         request_id = self.__build_request_id(ADOPT_REQUEST_PREFIX, stack_id)
         associated_topology = self.__build_associated_topology_response(stack_id)
         return LifecycleExecuteResponse(request_id, associated_topology=associated_topology)
@@ -314,7 +320,7 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         heat_driver = openstack_location.heat_driver
         request_type, stack_id, operation_id = self.__split_request_id(request_id)
         try:
-            stack = heat_driver.get_stack(stack_id)
+            stack = heat_driver.get_stack(stack_id)            
         except StackNotFoundError as e:
             logger.debug('Stack not found: %s', stack_id)
             if request_type == DELETE_REQUEST_PREFIX:
@@ -346,13 +352,17 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
 
     def __determine_create_status(self, request_id, stack_id, stack_status):
         request_type, stack_id, operation_id = self.__split_request_id(request_id)
-        if stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_ADOPT_IN_PROGRESS, OS_STACK_STATUS_RESUME_IN_PROGRESS]:
+        if stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_ADOPT_IN_PROGRESS, OS_STACK_STATUS_RESUME_IN_PROGRESS, OS_STACK_STATUS_CHECK_IN_PROGRESS]:
             create_status = STATUS_IN_PROGRESS
-        elif stack_status in [OS_STACK_STATUS_CREATE_COMPLETE, OS_STACK_STATUS_ADOPT_COMPLETE, OS_STACK_STATUS_RESUME_COMPLETE]:
+        # elif stack_status in [OS_STACK_STATUS_INIT_COMPLETE, OS_STACK_STATUS_UPDATE_COMPLETE, OS_STACK_STATUS_ROLLBACK_COMPLETE, OS_STACK_STATUS_SNAPSHOT_COMPLETE]:
+        #     # run a check for these statuses
+        #     heat_driver.check_stack(stack_id)
+        #     create_status = STATUS_IN_PROGRESS 
+        elif stack_status in [OS_STACK_STATUS_CREATE_COMPLETE, OS_STACK_STATUS_ADOPT_COMPLETE, OS_STACK_STATUS_RESUME_COMPLETE, OS_STACK_STATUS_CHECK_COMPLETE]:
             create_status = STATUS_COMPLETE
         elif request_type == ADOPT_REQUEST_PREFIX and stack_status in [OS_STACK_STATUS_SUSPEND_IN_PROGRESS, OS_STACK_STATUS_SUSPEND_COMPLETE]:
-            raise ResourceDriverError(f'Cannot Adopt request \'{request_id}\' as the current Stack status is \'{stack_status}\' which is not a valid value. Stack must be Resumed first.')            
-        elif stack_status in [OS_STACK_STATUS_CREATE_FAILED, OS_STACK_STATUS_ADOPT_FAILED]:
+            create_status = STATUS_FAILED
+        elif stack_status in [OS_STACK_STATUS_CREATE_FAILED, OS_STACK_STATUS_ADOPT_FAILED, OS_STACK_STATUS_CHECK_FAILED]:
             create_status = STATUS_FAILED
         else:
             raise ResourceDriverError(f'Cannot determine status for request \'{request_id}\' as the current Stack status is \'{stack_status}\' which is not a valid value for the expected transition')

@@ -56,7 +56,8 @@ class ConnectionRunner:
     def __created_associated_topology(self, adopt=False):
         associated_topology = AssociatedTopology()
         if adopt==True:
-            associated_topology.add_entry('027dec82-9110-4534-8e33-c1313daa3d1f', '027dec82-9110-4534-8e33-c1313daa3d1f', 'Openstack')
+            stack_id = '380b6668-d2ba-44d6-a557-4d44e713fee2'
+            associated_topology.add_entry(stack_id, stack_id, 'Openstack')
         else:
             associated_topology.add_entry('InfrastructureStack', '1', 'Openstack')    
         return associated_topology
@@ -105,6 +106,7 @@ class ConnectionRunner:
         print("response: "+executionResponse.status)
         print("response outputs: "+str(executionResponse.outputs))
         print("request ID: "+str(executionResponse.request_id))
+        print("failure_details: "+str(executionResponse.failure_details))
 
 
 runner = ConnectionRunner()

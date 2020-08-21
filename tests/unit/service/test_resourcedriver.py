@@ -446,12 +446,15 @@ class TestResourceDriverHandler(unittest.TestCase):
     def test_get_lifecycle_execution_adopt_suspended(self):
         self.mock_heat_driver.get_stack.return_value = {
             'id': '1',
-            'stack_status': 'SUSPEND_COMPLETE'
+            'stack_status': 'SUSPEND_COMPLETE',
+            'stack_status_reason': 'SUSPEND_COMPLETE'
         }
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
-        with self.assertRaises(ResourceDriverError) as context:
-            driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
-        self.assertEqual(str(context.exception), 'Cannot Adopt request \'Adopt::1::request123\' as the current Stack status is \'SUSPEND_COMPLETE\' which is not a valid value. Stack must be Resumed first.')
+        execution = driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertIsInstance(execution, LifecycleExecution)
+        self.assertEqual(execution.request_id, 'Adopt::1::request123')
+        self.assertEqual(execution.status, 'FAILED')        
+        self.assertEqual(str(execution.failure_details), 'failure_code: INFRASTRUCTURE_ERROR description: SUSPEND_COMPLETE')
         
     def test_get_lifecycle_execution_create_complete_no_outputs(self):
         self.mock_heat_driver.get_stack.return_value = {
