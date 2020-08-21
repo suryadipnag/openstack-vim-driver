@@ -11,3 +11,8 @@ messaging:
 resource_driver:
   scripts_workspace: ./driver_files
   keep_files: False
+
+adopt:
+  skip_status_check: False
+  adoptable_status_values: ['CREATE_COMPLETE','ADOPT_COMPLETE','RESUME_COMPLETE','CHECK_COMPLETE','UPDATE_COMPLETE']
+   

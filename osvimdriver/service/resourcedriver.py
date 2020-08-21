@@ -25,17 +25,10 @@ OS_STACK_STATUS_DELETE_IN_PROGRESS = 'DELETE_IN_PROGRESS'
 OS_STACK_STATUS_DELETE_COMPLETE = 'DELETE_COMPLETE'
 OS_STACK_STATUS_DELETE_FAILED = 'DELETE_FAILED'
 OS_STACK_STATUS_RESUME_IN_PROGRESS = 'RESUME_IN_PROGRESS'
-OS_STACK_STATUS_RESUME_COMPLETE = 'RESUME_COMPLETE'
 OS_STACK_STATUS_SUSPEND_IN_PROGRESS = 'SUSPEND_IN_PROGRESS'
 OS_STACK_STATUS_SUSPEND_COMPLETE = 'SUSPEND_COMPLETE'
-OS_STACK_STATUS_CHECK_COMPLETE = 'CHECK_COMPLETE'
 OS_STACK_STATUS_CHECK_IN_PROGRESS='CHECK_IN_PROGRESS'
 OS_STACK_STATUS_CHECK_FAILED='CHECK_FAILED'
-OS_STACK_STATUS_INIT_COMPLETE='INIT_COMPLETE'
-OS_STACK_STATUS_UPDATE_COMPLETE='UPDATE_COMPLETE'
-OS_STACK_STATUS_ROLLBACK_COMPLETE='ROLLBACK_COMPLETE'
-OS_STACK_STATUS_SNAPSHOT_COMPLETE='SNAPSHOT_COMPLETE'
-
 
 TOSCA_TEMPLATE_TYPE = 'TOSCA'
 HEAT_TEMPLATE_TYPE = 'HEAT'
@@ -54,6 +47,13 @@ class AdditionalResourceDriverProperties(ConfigurationPropertiesGroup, Service, 
         super().__init__('resource_driver')
         self.keep_files = False
 
+class AdoptProperties(ConfigurationPropertiesGroup, Service, Capability):
+
+    def __init__(self):
+        super().__init__('adopt')
+        self.skip_status_check = False
+        self.adoptable_status_values = ['CREATE_COMPLETE','ADOPT_COMPLETE','RESUME_COMPLETE','CHECK_COMPLETE','UPDATE_COMPLETE']
+        
 class StackNameCreator:
 
     def create(self, resource_id, resource_name):
@@ -87,7 +87,10 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         self.tosca_discovery_service = kwargs.get('tosca_discovery_service')
         if 'resource_driver_config' not in kwargs:
             raise ValueError('resource_driver_config argument not provided')
+        if 'adopt_config' in kwargs:
+            self.adopt_config = kwargs.get('adopt_config')
         self.resource_driver_config = kwargs.get('resource_driver_config')
+        
         self.location_translator = location_translator
         self.stack_name_creator = StackNameCreator()
         self.props_merger = PropertiesMerger()
@@ -335,8 +338,10 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         request_type, stack_id, operation_id = self.__split_request_id(request_id)
         stack_status = stack.get('stack_status', None)
         failure_details = None
-        if request_type == CREATE_REQUEST_PREFIX or request_type == ADOPT_REQUEST_PREFIX:
-            status = self.__determine_create_status(request_id, stack_id, stack_status)         
+        if request_type == CREATE_REQUEST_PREFIX:
+            status = self.__determine_create_status(request_id, stack_id, stack_status)
+        elif request_type == ADOPT_REQUEST_PREFIX:
+            status = self.__determine_adopt_status(request_id, stack_id, stack_status)
         else:
             status = self.__determine_delete_status(request_id, stack_id, stack_status)
         if status == STATUS_FAILED:
@@ -351,23 +356,32 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         return LifecycleExecution(request_id, status, failure_details=failure_details, outputs=outputs)
 
     def __determine_create_status(self, request_id, stack_id, stack_status):
-        request_type, stack_id, operation_id = self.__split_request_id(request_id)
-        if stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_ADOPT_IN_PROGRESS, OS_STACK_STATUS_RESUME_IN_PROGRESS, OS_STACK_STATUS_CHECK_IN_PROGRESS]:
+        if stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_ADOPT_IN_PROGRESS]:
             create_status = STATUS_IN_PROGRESS
-        # elif stack_status in [OS_STACK_STATUS_INIT_COMPLETE, OS_STACK_STATUS_UPDATE_COMPLETE, OS_STACK_STATUS_ROLLBACK_COMPLETE, OS_STACK_STATUS_SNAPSHOT_COMPLETE]:
-        #     # run a check for these statuses
-        #     heat_driver.check_stack(stack_id)
-        #     create_status = STATUS_IN_PROGRESS 
-        elif stack_status in [OS_STACK_STATUS_CREATE_COMPLETE, OS_STACK_STATUS_ADOPT_COMPLETE, OS_STACK_STATUS_RESUME_COMPLETE, OS_STACK_STATUS_CHECK_COMPLETE]:
+        elif stack_status in [OS_STACK_STATUS_CREATE_COMPLETE, OS_STACK_STATUS_ADOPT_COMPLETE]:
             create_status = STATUS_COMPLETE
-        elif request_type == ADOPT_REQUEST_PREFIX and stack_status in [OS_STACK_STATUS_SUSPEND_IN_PROGRESS, OS_STACK_STATUS_SUSPEND_COMPLETE]:
-            create_status = STATUS_FAILED
-        elif stack_status in [OS_STACK_STATUS_CREATE_FAILED, OS_STACK_STATUS_ADOPT_FAILED, OS_STACK_STATUS_CHECK_FAILED]:
+        elif stack_status in [OS_STACK_STATUS_CREATE_FAILED, OS_STACK_STATUS_ADOPT_FAILED]:
             create_status = STATUS_FAILED
         else:
             raise ResourceDriverError(f'Cannot determine status for request \'{request_id}\' as the current Stack status is \'{stack_status}\' which is not a valid value for the expected transition')
         logger.debug('Stack %s has stack_status %s, setting status in response to %s', stack_id, stack_status, create_status)
         return create_status
+
+    def __determine_adopt_status(self, request_id, stack_id, stack_status):                
+        if self.adopt_config.skip_status_check:
+            logger.debug('Status check for adopt of stack id: %s will be skipped', stack_id)            
+            return STATUS_COMPLETE
+
+        if stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_ADOPT_IN_PROGRESS, OS_STACK_STATUS_RESUME_IN_PROGRESS, OS_STACK_STATUS_CHECK_IN_PROGRESS]:
+            adopt_status = STATUS_IN_PROGRESS
+        elif stack_status in self.adopt_config.adoptable_status_values:  
+            adopt_status = STATUS_COMPLETE
+        elif stack_status in [OS_STACK_STATUS_CREATE_FAILED, OS_STACK_STATUS_ADOPT_FAILED, OS_STACK_STATUS_CHECK_FAILED, OS_STACK_STATUS_SUSPEND_IN_PROGRESS, OS_STACK_STATUS_SUSPEND_COMPLETE]:
+            adopt_status = STATUS_FAILED
+        else:
+            raise ResourceDriverError(f'Cannot determine status for request \'{request_id}\' as the current Stack status is \'{stack_status}\' which is not a valid value for the expected transition')
+        logger.debug('Stack %s has stack_status %s, setting status in response to %s', stack_id, stack_status, adopt_status)
+        return adopt_status  
 
     def __determine_delete_status(self, request_id, stack_id, stack_status):
         if stack_status in [OS_STACK_STATUS_DELETE_IN_PROGRESS]:

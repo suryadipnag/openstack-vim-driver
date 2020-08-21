@@ -8,7 +8,7 @@ from ignition.model.references import FindReferenceResponse, FindReferenceResult
 from ignition.model.associated_topology import AssociatedTopology
 from ignition.model.lifecycle import LifecycleExecution, LifecycleExecuteResponse
 from ignition.utils.file import DirectoryTree
-from osvimdriver.service.resourcedriver import ResourceDriverHandler, StackNameCreator, PropertiesMerger, AdditionalResourceDriverProperties
+from osvimdriver.service.resourcedriver import ResourceDriverHandler, StackNameCreator, PropertiesMerger, AdditionalResourceDriverProperties, AdoptProperties
 from osvimdriver.service.tosca import ToscaValidationError
 from osvimdriver.tosca.discover import DiscoveryResult, NotDiscoveredError
 from osvimdriver.openstack.heat.driver import StackNotFoundError
@@ -17,9 +17,11 @@ from ignition.utils.propvaluemap import PropValueMap
 
 class OSConnector:
     resource_driver_config = AdditionalResourceDriverProperties()
-
+    adopt_properties = AdoptProperties()
     def setupResourceDriver(self):
-        driver = ResourceDriverHandler(OpenstackDeploymentLocationTranslator(), resource_driver_config=self.resource_driver_config, heat_translator_service=None, tosca_discovery_service=None)
+        driver = ResourceDriverHandler(OpenstackDeploymentLocationTranslator(), 
+            resource_driver_config=self.resource_driver_config, heat_translator_service=None, tosca_discovery_service=None,
+            adopt_config=self.adopt_properties)
         return driver
 
 class ConnectionRunner:
@@ -56,7 +58,7 @@ class ConnectionRunner:
     def __created_associated_topology(self, adopt=False):
         associated_topology = AssociatedTopology()
         if adopt==True:
-            stack_id = '380b6668-d2ba-44d6-a557-4d44e713fee2'
+            stack_id = 'f96b3c43-66a0-4b4f-a822-38cd313afff5'
             associated_topology.add_entry(stack_id, stack_id, 'Openstack')
         else:
             associated_topology.add_entry('InfrastructureStack', '1', 'Openstack')    
