@@ -435,7 +435,8 @@ class TestResourceDriverHandler(unittest.TestCase):
                 {'output_key': 'outputB', 'output_value': 'valueB'}
             ]
         }
-        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service, adopt_config=self.adopt_config)
+        # don't pass adopt_config to check defaults are used 
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         execution = driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
         self.assertIsInstance(execution, LifecycleExecution)
         self.assertEqual(execution.request_id, 'Adopt::1::request123')
@@ -456,7 +457,50 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.assertEqual(execution.request_id, 'Adopt::1::request123')
         self.assertEqual(execution.status, 'FAILED')        
         self.assertEqual(str(execution.failure_details), 'failure_code: INFRASTRUCTURE_ERROR description: SUSPEND_COMPLETE')
-        
+
+    def test_get_lifecycle_execution_adopt_skip_status_check(self):
+        # here we generate a stack status of suspended, but will still import, becuase the skip status check will be set
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '1',
+            'stack_status': 'SUSPEND_COMPLETE',
+            'stack_status_reason': 'SUSPEND_COMPLETE'
+        }
+        adopt_conf=self.adopt_config
+        adopt_conf.skip_status_check=True
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service, adopt_config=adopt_conf)
+        execution = driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertIsInstance(execution, LifecycleExecution)
+        self.assertEqual(execution.request_id, 'Adopt::1::request123')
+        self.assertEqual(execution.status, 'COMPLETE')
+
+    def test_get_lifecycle_execution_adopt_indeterminate_status(self):
+        # here we generate a stack status of snapshot_complete, but will not import, becuase it is not a listed status we deal with.
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '1',
+            'stack_status': 'SNAPSHOT_COMPLETE',
+            'stack_status_reason': 'SNAPSHOT_COMPLETE'
+        }
+        adopt_conf=self.adopt_config        
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service, adopt_config=adopt_conf)
+        with self.assertRaises(ResourceDriverError) as context:
+            driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertEqual(str(context.exception), 'Cannot determine status for request \'Adopt::1::request123\' as the current Stack status is \'SNAPSHOT_COMPLETE\' which is not a valid value for the expected transition')
+
+    def test_get_lifecycle_execution_adopt_additionally_configured_status(self):
+        # here we generate a stack status of snapshot_complete, but will still import, becuase we'll add it to the list, as if configured
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '1',
+            'stack_status': 'SNAPSHOT_COMPLETE',
+            'stack_status_reason': 'SNAPSHOT_COMPLETE'
+        }
+        adopt_conf=self.adopt_config
+        adopt_conf.adoptable_status_values.append('SNAPSHOT_COMPLETE')     
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service, adopt_config=adopt_conf)
+        execution = driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertIsInstance(execution, LifecycleExecution)
+        self.assertEqual(execution.request_id, 'Adopt::1::request123')
+        self.assertEqual(execution.status, 'COMPLETE')
+
     def test_get_lifecycle_execution_create_complete_no_outputs(self):
         self.mock_heat_driver.get_stack.return_value = {
             'id': '1',

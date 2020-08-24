@@ -89,6 +89,8 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
             raise ValueError('resource_driver_config argument not provided')
         if 'adopt_config' in kwargs:
             self.adopt_config = kwargs.get('adopt_config')
+        else:
+            self.adopt_config = AdoptProperties()
         self.resource_driver_config = kwargs.get('resource_driver_config')
         
         self.location_translator = location_translator
