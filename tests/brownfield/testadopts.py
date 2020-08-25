@@ -1,3 +1,5 @@
+# This manually run test file is used for testing the adoption process for the driver against an Openstack system
+import sys; sys.path.append("../")
 import uuid
 import tempfile
 import shutil
@@ -58,13 +60,14 @@ class ConnectionRunner:
     def __created_associated_topology(self, adopt=False):
         associated_topology = AssociatedTopology()
         if adopt==True:
-            stack_id = 'f96b3c43-66a0-4b4f-a822-38cd313afff5'
+            # ID of the stack to adopt:
+            stack_id = '365fa68d-3dab-43d4-abdb-c217aabda684'
             associated_topology.add_entry(stack_id, stack_id, 'Openstack')
         else:
             associated_topology.add_entry('InfrastructureStack', '1', 'Openstack')    
         return associated_topology
 
-
+    # This is where you define the openstack location details:
     def __deployment_location(self):
         return {
             "name": "openstack-yeast",
