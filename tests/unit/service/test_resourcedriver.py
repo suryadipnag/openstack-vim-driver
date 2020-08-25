@@ -120,8 +120,7 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.tosca_request_properties = self.__tosca_request_properties()
         self.deployment_location = self.__deployment_location()
         self.created_associated_topology = self.__created_associated_topology()
-        self.created_adopted_topology = self.__created_adopted_topology()
-        
+        self.created_adopted_topology = self.__created_adopted_topology()        
 
     def tearDown(self):
         if os.path.exists(self.heat_driver_files.root_path):
@@ -173,7 +172,6 @@ class TestResourceDriverHandler(unittest.TestCase):
         associated_topology = AssociatedTopology()
         associated_topology.add_entry('555', '555', 'Openstack')
         return associated_topology
-
 
     def assert_request_id(self, request_id, expected_prefix, expected_stack_id):
         self.assertTrue(request_id.startswith(expected_prefix + '::' + expected_stack_id + '::'))

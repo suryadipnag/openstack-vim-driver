@@ -64,8 +64,7 @@ class HeatDriver():
             heat_client.actions.check(stack_id)
         except heatexc.HTTPNotFound as e:
             raise StackNotFoundError(str(e)) from e
-              
-
+                      
     def get_stacks(self):
         heat_client = self.__get_heat_client()
         logger.debug('Retrieving stacks %s')
