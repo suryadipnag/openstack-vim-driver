@@ -191,6 +191,9 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
                 stack_to_adopt = heat_driver.get_stack(stack_id.strip())
             except StackNotFoundError as e:
                 raise InfrastructureNotFoundError(str(e)) from e
+        else:
+            # There is no Stack associated to this Resource raise error
+            raise InvalidRequestError("You must supply the stack_id in associated_topology")   
         # get the status and check it's ok 
         stack_status = stack_to_adopt.get('stack_status', None)
         if stack_status in [OS_STACK_STATUS_DELETE_COMPLETE, OS_STACK_STATUS_DELETE_IN_PROGRESS]:
@@ -374,10 +377,10 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
             logger.debug('Status check for adopt of stack id: %s will be skipped', stack_id)            
             return STATUS_COMPLETE
 
-        if stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_ADOPT_IN_PROGRESS, OS_STACK_STATUS_RESUME_IN_PROGRESS, OS_STACK_STATUS_CHECK_IN_PROGRESS]:
-            adopt_status = STATUS_IN_PROGRESS
-        elif stack_status in self.adopt_config.adoptable_status_values:  
+        if stack_status in self.adopt_config.adoptable_status_values:  
             adopt_status = STATUS_COMPLETE
+        elif stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_ADOPT_IN_PROGRESS, OS_STACK_STATUS_RESUME_IN_PROGRESS, OS_STACK_STATUS_CHECK_IN_PROGRESS]:
+            adopt_status = STATUS_IN_PROGRESS
         elif stack_status in [OS_STACK_STATUS_CREATE_FAILED, OS_STACK_STATUS_ADOPT_FAILED, OS_STACK_STATUS_CHECK_FAILED, OS_STACK_STATUS_SUSPEND_IN_PROGRESS, OS_STACK_STATUS_SUSPEND_COMPLETE]:
             adopt_status = STATUS_FAILED
         else:

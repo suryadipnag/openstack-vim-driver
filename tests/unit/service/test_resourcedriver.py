@@ -315,7 +315,7 @@ class TestResourceDriverHandler(unittest.TestCase):
             driver.execute_lifecycle('Adopt', self.heat_driver_files, self.system_properties, self.resource_properties, {}, AssociatedTopology(), self.deployment_location)
         self.assertEqual(str(context.exception), 'You must supply exactly one stack_id to adopt in associated_topology')
 
-    def test_adopt_infrastructure_with_to_many_associated_topology(self):
+    def test_adopt_infrastructure_with_too_many_associated_topology(self):
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)                     
         associated_topology = self.created_adopted_topology
         self.created_adopted_topology.add_entry('556', '556', 'Openstack')
