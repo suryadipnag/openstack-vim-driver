@@ -1,5 +1,6 @@
 # This manually run test file is used for testing the adoption process for the driver against an Openstack system
-import sys; sys.path.append("../")
+import sys
+sys.path.append("../")
 import uuid
 import tempfile
 import shutil
@@ -57,17 +58,17 @@ class ConnectionRunner:
         props['resourceName'] = 'TestResource'
         return PropValueMap(props)        
 
-    def __created_associated_topology(self, adopt=False):
+    def __created_associated_topology(self, adopt=False, stack_id=''):
         associated_topology = AssociatedTopology()
         if adopt==True:
-            # ID of the stack to adopt:
-            stack_id = '365fa68d-3dab-43d4-abdb-c217aabda684'
             associated_topology.add_entry(stack_id, stack_id, 'Openstack')
         else:
             associated_topology.add_entry('InfrastructureStack', '1', 'Openstack')    
         return associated_topology
 
+    # 
     # This is where you define the openstack location details:
+    # Put Openstack details below:
     def __deployment_location(self):
         return {
             "name": "openstack-yeast",
@@ -78,7 +79,7 @@ class ConnectionRunner:
                 "os_auth_password": "password", 
                 "os_auth_user_domain_name": "Default",
                 "os_auth_api": "identity/v3",
-                "os_api_url": "http://9.46.89.226",
+                "os_api_url": "http://OS_IP_ADDRESS",
                 "os_auth_project_id": "701600a059af40e1865a3c494288712a"},             
             "type": "Openstack"
         }             
@@ -89,9 +90,15 @@ class ConnectionRunner:
         print("Set Up parameters");
         self.__create_mock_driver_files()       
         self.resource_properties = self.__resource_properties()
-        self.system_properties = self.__system_properties()        
-        self.created_adopted_topology = self.__created_associated_topology(True)
+        self.system_properties = self.__system_properties()
+        # Need to manually set up stack_id and deployment location before running
         self.deployment_location = self.__deployment_location()
+        stackid=''        
+        if len(stackid.strip())==0:
+            print("WARNING: set stack_id and deployment location detials first")
+            sys.exit()
+        self.created_adopted_topology = self.__created_associated_topology(True, stack_id=stackid)
+        
 
         print("Call execute_lifecycle to Adopt:" +str(self.created_adopted_topology));
 
