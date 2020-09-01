@@ -4,12 +4,12 @@ import tempfile
 import shutil
 import os
 from unittest.mock import patch, MagicMock, ANY
-from ignition.service.resourcedriver import InfrastructureNotFoundError, InvalidDriverFilesError, InvalidRequestError
+from ignition.service.resourcedriver import InfrastructureNotFoundError, InvalidDriverFilesError, InvalidRequestError, ResourceDriverError
 from ignition.model.references import FindReferenceResponse, FindReferenceResult
 from ignition.model.associated_topology import AssociatedTopology
 from ignition.model.lifecycle import LifecycleExecution, LifecycleExecuteResponse
 from ignition.utils.file import DirectoryTree
-from osvimdriver.service.resourcedriver import ResourceDriverHandler, StackNameCreator, PropertiesMerger, AdditionalResourceDriverProperties
+from osvimdriver.service.resourcedriver import ResourceDriverHandler, StackNameCreator, PropertiesMerger, AdditionalResourceDriverProperties, AdoptProperties
 from osvimdriver.service.tosca import ToscaValidationError
 from osvimdriver.tosca.discover import DiscoveryResult, NotDiscoveredError
 from osvimdriver.openstack.heat.driver import StackNotFoundError
@@ -100,6 +100,7 @@ class TestResourceDriverHandler(unittest.TestCase):
     def setUp(self):
         self.__create_mock_driver_files()
         self.resource_driver_config = AdditionalResourceDriverProperties()
+        self.adopt_config = AdoptProperties()
         self.mock_heat_input_utils = MagicMock()
         self.mock_heat_input_utils.filter_used_properties.return_value = {'propA': 'valueA'}
         self.mock_heat_driver = MagicMock()
@@ -119,6 +120,7 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.tosca_request_properties = self.__tosca_request_properties()
         self.deployment_location = self.__deployment_location()
         self.created_associated_topology = self.__created_associated_topology()
+        self.created_adopted_topology = self.__created_adopted_topology()        
 
     def tearDown(self):
         if os.path.exists(self.heat_driver_files.root_path):
@@ -166,6 +168,11 @@ class TestResourceDriverHandler(unittest.TestCase):
         associated_topology.add_entry('InfrastructureStack', '1', 'Openstack')
         return associated_topology
 
+    def __created_adopted_topology(self):
+        associated_topology = AssociatedTopology()
+        associated_topology.add_entry('555', '555', 'Openstack')
+        return associated_topology
+
     def assert_request_id(self, request_id, expected_prefix, expected_stack_id):
         self.assertTrue(request_id.startswith(expected_prefix + '::' + expected_stack_id + '::'))
 
@@ -179,7 +186,7 @@ class TestResourceDriverHandler(unittest.TestCase):
     @patch('osvimdriver.service.resourcedriver.StackNameCreator')
     def test_create_infrastructure_uses_stack_name_creator(self, mock_stack_name_creator):
         self.mock_heat_driver.create_stack.return_value = '1'
-        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service, adopt_config=self.adopt_config)
         result = driver.execute_lifecycle('Create', self.heat_driver_files, self.system_properties, self.resource_properties, {}, AssociatedTopology(), self.deployment_location)
         mock_stack_name_creator_inst = mock_stack_name_creator.return_value
         mock_stack_name_creator_inst.create.assert_called_once_with('123', 'TestResource')
@@ -294,6 +301,38 @@ class TestResourceDriverHandler(unittest.TestCase):
             driver.execute_lifecycle('Create', self.tosca_driver_files, self.system_properties, self.resource_properties, request_properties, AssociatedTopology(), self.deployment_location)
         self.assertEqual(str(context.exception), 'Cannot create using template of type \'YAML\'. Must be one of: [\'TOSCA\', \'HEAT\']')
 
+    def test_adopt_infrastructure(self):
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)             
+        result = driver.execute_lifecycle('Adopt', self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_adopted_topology, self.deployment_location)
+        self.assertIsInstance(result, LifecycleExecuteResponse)        
+        self.assert_request_id(result.request_id, 'Adopt', '555')        
+        self.assert_internal_resource(result.associated_topology, '555')
+        self.mock_location_translator.from_deployment_location.assert_called_once_with(self.deployment_location)
+
+    def test_adopt_infrastructure_with_no_associated_topology(self):
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        with self.assertRaises(InvalidRequestError) as context:
+            driver.execute_lifecycle('Adopt', self.heat_driver_files, self.system_properties, self.resource_properties, {}, AssociatedTopology(), self.deployment_location)
+        self.assertEqual(str(context.exception), 'You must supply exactly one stack_id to adopt in associated_topology')
+
+    def test_adopt_infrastructure_with_too_many_associated_topology(self):
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)                     
+        associated_topology = self.created_adopted_topology
+        self.created_adopted_topology.add_entry('556', '556', 'Openstack')
+        with self.assertRaises(InvalidRequestError) as context:
+            driver.execute_lifecycle('Adopt', self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_adopted_topology, self.deployment_location)
+        self.assertEqual(str(context.exception), 'You must supply exactly one stack_id to adopt in associated_topology')
+
+    def test_adopt_deleted_infrastructure(self):
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '555',
+            'stack_status': 'DELETE_COMPLETE'
+        }
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)             
+        with self.assertRaises(InvalidRequestError) as context:
+            driver.execute_lifecycle('Adopt', self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_adopted_topology, self.deployment_location)
+        self.assertEqual(str(context.exception), 'The stack \'555\' has been deleted')
+
     def test_delete_infrastructure(self):
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         result = driver.execute_lifecycle('Delete', self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_associated_topology, self.deployment_location)
@@ -312,7 +351,7 @@ class TestResourceDriverHandler(unittest.TestCase):
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
         with self.assertRaises(InvalidRequestError) as context:
             driver.execute_lifecycle('Start', self.heat_driver_files, self.system_properties, self.resource_properties, {}, self.created_associated_topology, self.deployment_location)
-        self.assertEqual(str(context.exception), 'Openstack driver only supports Create and Delete transitions, not Start')
+        self.assertEqual(str(context.exception), 'Openstack driver only supports Create, Adopt and Delete transitions, not Start')
 
     def test_get_lifecycle_execution_for_delete_stack_not_found(self):
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
@@ -367,6 +406,99 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.assertEqual(execution.outputs, {'outputA': 'valueA', 'outputB': 'valueB'})
         self.assertEqual(execution.associated_topology, None)
 
+    def test_get_lifecycle_execution_adopt_complete(self):
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '1',
+            'stack_status': 'CREATE_COMPLETE',
+            'outputs': [
+                {'output_key': 'outputA', 'output_value': 'valueA'},
+                {'output_key': 'outputB', 'output_value': 'valueB'}
+            ]
+        }
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service, adopt_config=self.adopt_config)
+        execution = driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertIsInstance(execution, LifecycleExecution)
+        self.assertEqual(execution.request_id, 'Adopt::1::request123')
+        self.assertEqual(execution.status, 'COMPLETE')
+        self.assertEqual(execution.failure_details, None)
+        self.assertEqual(execution.outputs, {'outputA': 'valueA', 'outputB': 'valueB'})
+        self.assertEqual(execution.associated_topology, None)
+
+    def test_get_lifecycle_execution_adopt_resumed(self):
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '1',
+            'stack_status': 'RESUME_COMPLETE',
+            'outputs': [
+                {'output_key': 'outputA', 'output_value': 'valueA'},
+                {'output_key': 'outputB', 'output_value': 'valueB'}
+            ]
+        }
+        # don't pass adopt_config to check defaults are used 
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
+        execution = driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertIsInstance(execution, LifecycleExecution)
+        self.assertEqual(execution.request_id, 'Adopt::1::request123')
+        self.assertEqual(execution.status, 'COMPLETE')
+        self.assertEqual(execution.failure_details, None)
+        self.assertEqual(execution.outputs, {'outputA': 'valueA', 'outputB': 'valueB'})
+        self.assertEqual(execution.associated_topology, None)
+
+    def test_get_lifecycle_execution_adopt_suspended(self):
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '1',
+            'stack_status': 'SUSPEND_COMPLETE',
+            'stack_status_reason': 'SUSPEND_COMPLETE'
+        }
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service, adopt_config=self.adopt_config)
+        execution = driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertIsInstance(execution, LifecycleExecution)
+        self.assertEqual(execution.request_id, 'Adopt::1::request123')
+        self.assertEqual(execution.status, 'FAILED')        
+        self.assertEqual(str(execution.failure_details), 'failure_code: INFRASTRUCTURE_ERROR description: SUSPEND_COMPLETE')
+
+    def test_get_lifecycle_execution_adopt_skip_status_check(self):
+        # here we generate a stack status of suspended, but will still import, becuase the skip status check will be set
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '1',
+            'stack_status': 'SUSPEND_COMPLETE',
+            'stack_status_reason': 'SUSPEND_COMPLETE'
+        }
+        adopt_conf=self.adopt_config
+        adopt_conf.skip_status_check=True
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service, adopt_config=adopt_conf)
+        execution = driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertIsInstance(execution, LifecycleExecution)
+        self.assertEqual(execution.request_id, 'Adopt::1::request123')
+        self.assertEqual(execution.status, 'COMPLETE')
+
+    def test_get_lifecycle_execution_adopt_indeterminate_status(self):
+        # here we generate a stack status of snapshot_complete, but will not import, becuase it is not a listed status we deal with.
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '1',
+            'stack_status': 'SNAPSHOT_COMPLETE',
+            'stack_status_reason': 'SNAPSHOT_COMPLETE'
+        }
+        adopt_conf=self.adopt_config        
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service, adopt_config=adopt_conf)
+        with self.assertRaises(ResourceDriverError) as context:
+            driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertEqual(str(context.exception), 'Cannot determine status for request \'Adopt::1::request123\' as the current Stack status is \'SNAPSHOT_COMPLETE\' which is not a valid value for the expected transition')
+
+    def test_get_lifecycle_execution_adopt_additionally_configured_status(self):
+        # here we generate a stack status of snapshot_complete, but will still import, becuase we'll add it to the list, as if configured
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '1',
+            'stack_status': 'SNAPSHOT_COMPLETE',
+            'stack_status_reason': 'SNAPSHOT_COMPLETE'
+        }
+        adopt_conf=self.adopt_config
+        adopt_conf.adoptable_status_values.append('SNAPSHOT_COMPLETE')     
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service, adopt_config=adopt_conf)
+        execution = driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertIsInstance(execution, LifecycleExecution)
+        self.assertEqual(execution.request_id, 'Adopt::1::request123')
+        self.assertEqual(execution.status, 'COMPLETE')
+
     def test_get_lifecycle_execution_create_complete_no_outputs(self):
         self.mock_heat_driver.get_stack.return_value = {
             'id': '1',
@@ -406,6 +538,22 @@ class TestResourceDriverHandler(unittest.TestCase):
         execution = driver.get_lifecycle_execution('Create::1::request123', self.deployment_location)
         self.assertIsInstance(execution, LifecycleExecution)
         self.assertEqual(execution.request_id, 'Create::1::request123')
+        self.assertEqual(execution.status, 'FAILED')
+        self.assertEqual(execution.failure_details.failure_code, 'INFRASTRUCTURE_ERROR')
+        self.assertEqual(execution.failure_details.description, 'For the test')
+        self.assertEqual(execution.outputs, None)
+        self.assertEqual(execution.associated_topology, None)
+
+    def test_get_lifecycle_execution_adopt_failed(self):
+        self.mock_heat_driver.get_stack.return_value = {
+            'id': '1',
+            'stack_status': 'ADOPT_FAILED',
+            'stack_status_reason': 'For the test'
+        }
+        driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service, adopt_config=self.adopt_config)
+        execution = driver.get_lifecycle_execution('Adopt::1::request123', self.deployment_location)
+        self.assertIsInstance(execution, LifecycleExecution)
+        self.assertEqual(execution.request_id, 'Adopt::1::request123')
         self.assertEqual(execution.status, 'FAILED')
         self.assertEqual(execution.failure_details.failure_code, 'INFRASTRUCTURE_ERROR')
         self.assertEqual(execution.failure_details.description, 'For the test')

@@ -24,6 +24,11 @@ OS_STACK_STATUS_ADOPT_FAILED = 'ADOPT_FAILED'
 OS_STACK_STATUS_DELETE_IN_PROGRESS = 'DELETE_IN_PROGRESS'
 OS_STACK_STATUS_DELETE_COMPLETE = 'DELETE_COMPLETE'
 OS_STACK_STATUS_DELETE_FAILED = 'DELETE_FAILED'
+OS_STACK_STATUS_RESUME_IN_PROGRESS = 'RESUME_IN_PROGRESS'
+OS_STACK_STATUS_SUSPEND_IN_PROGRESS = 'SUSPEND_IN_PROGRESS'
+OS_STACK_STATUS_SUSPEND_COMPLETE = 'SUSPEND_COMPLETE'
+OS_STACK_STATUS_CHECK_IN_PROGRESS='CHECK_IN_PROGRESS'
+OS_STACK_STATUS_CHECK_FAILED='CHECK_FAILED'
 
 TOSCA_TEMPLATE_TYPE = 'TOSCA'
 HEAT_TEMPLATE_TYPE = 'HEAT'
@@ -31,6 +36,7 @@ HEAT_TEMPLATE_TYPE = 'HEAT'
 REQUEST_ID_SEPARATOR = '::'
 CREATE_REQUEST_PREFIX = 'Create'
 DELETE_REQUEST_PREFIX = 'Delete'
+ADOPT_REQUEST_PREFIX = 'Adopt'
 
 STACK_RESOURCE_TYPE = 'Openstack'
 STACK_NAME = 'InfrastructureStack'
@@ -41,6 +47,13 @@ class AdditionalResourceDriverProperties(ConfigurationPropertiesGroup, Service, 
         super().__init__('resource_driver')
         self.keep_files = False
 
+class AdoptProperties(ConfigurationPropertiesGroup, Service, Capability):
+
+    def __init__(self):
+        super().__init__('adopt')
+        self.skip_status_check = False
+        self.adoptable_status_values = ['CREATE_COMPLETE','ADOPT_COMPLETE','RESUME_COMPLETE','CHECK_COMPLETE','UPDATE_COMPLETE']
+        
 class StackNameCreator:
 
     def create(self, resource_id, resource_name):
@@ -74,7 +87,12 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         self.tosca_discovery_service = kwargs.get('tosca_discovery_service')
         if 'resource_driver_config' not in kwargs:
             raise ValueError('resource_driver_config argument not provided')
+        if 'adopt_config' in kwargs:
+            self.adopt_config = kwargs.get('adopt_config')
+        else:
+            self.adopt_config = AdoptProperties()
         self.resource_driver_config = kwargs.get('resource_driver_config')
+        
         self.location_translator = location_translator
         self.stack_name_creator = StackNameCreator()
         self.props_merger = PropertiesMerger()
@@ -85,10 +103,12 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
             openstack_location = self.location_translator.from_deployment_location(deployment_location)
             if lifecycle_name.upper() == 'CREATE':
                 return self.__handle_create(driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location)
+            elif lifecycle_name.upper() == 'ADOPT':
+                return self.__handle_adopt(driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location)
             elif lifecycle_name.upper() == 'DELETE':
                 return self.__handle_delete(driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location)
             else:
-                raise InvalidRequestError(f'Openstack driver only supports Create and Delete transitions, not {lifecycle_name}')
+                raise InvalidRequestError(f'Openstack driver only supports Create, Adopt and Delete transitions, not {lifecycle_name}')
         finally:
             if not self.resource_driver_config.keep_files:
                 try:
@@ -145,6 +165,41 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
                 stack_name = 's' + str(uuid.uuid4())
             stack_id = heat_driver.create_stack(stack_name, heat_template, heat_inputs, **kwargs)
         request_id = self.__build_request_id(CREATE_REQUEST_PREFIX, stack_id)
+        associated_topology = self.__build_associated_topology_response(stack_id)
+        return LifecycleExecuteResponse(request_id, associated_topology=associated_topology)
+
+    def __handle_adopt(self, driver_files, system_properties, resource_properties, request_properties, associated_topology, openstack_location):        
+        stack_resource_entry = None
+        if (associated_topology is None or len(associated_topology.to_dict()) != 1):
+            # Expect one adopt stack only per call!
+            raise InvalidRequestError("You must supply exactly one stack_id to adopt in associated_topology")
+        # Only expect one associated_topology so break after first
+        for key, value in associated_topology.to_dict().items():
+            stack_resource_entry = associated_topology.get(str(key))
+            break
+        
+        if stack_resource_entry is None:            
+            # There is no Stack associated to this Resource raise error
+            raise InvalidRequestError("You must supply the stack_id in associated_topology")            
+           
+        stack_id = stack_resource_entry.element_id
+        heat_driver = openstack_location.heat_driver        
+
+        if stack_id != None and len(stack_id.strip())!=0 and stack_id.strip() != "0":
+            try:
+                # Check for valid stack
+                stack_to_adopt = heat_driver.get_stack(stack_id.strip())
+            except StackNotFoundError as e:
+                raise InfrastructureNotFoundError(str(e)) from e
+        else:
+            # There is no Stack associated to this Resource raise error
+            raise InvalidRequestError("You must supply the stack_id in associated_topology")   
+        # get the status and check it's ok 
+        stack_status = stack_to_adopt.get('stack_status', None)
+        if stack_status in [OS_STACK_STATUS_DELETE_COMPLETE, OS_STACK_STATUS_DELETE_IN_PROGRESS]:
+            raise InvalidRequestError("The stack \'"+stack_id+"\' has been deleted")
+        
+        request_id = self.__build_request_id(ADOPT_REQUEST_PREFIX, stack_id)
         associated_topology = self.__build_associated_topology_response(stack_id)
         return LifecycleExecuteResponse(request_id, associated_topology=associated_topology)
 
@@ -273,7 +328,7 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         heat_driver = openstack_location.heat_driver
         request_type, stack_id, operation_id = self.__split_request_id(request_id)
         try:
-            stack = heat_driver.get_stack(stack_id)
+            stack = heat_driver.get_stack(stack_id)            
         except StackNotFoundError as e:
             logger.debug('Stack not found: %s', stack_id)
             if request_type == DELETE_REQUEST_PREFIX:
@@ -290,6 +345,8 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         failure_details = None
         if request_type == CREATE_REQUEST_PREFIX:
             status = self.__determine_create_status(request_id, stack_id, stack_status)
+        elif request_type == ADOPT_REQUEST_PREFIX:
+            status = self.__determine_adopt_status(request_id, stack_id, stack_status)
         else:
             status = self.__determine_delete_status(request_id, stack_id, stack_status)
         if status == STATUS_FAILED:
@@ -298,9 +355,9 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
             status_reason = stack.get('stack_status_reason', None)
         outputs = None
         associated_topology = None
-        if request_type == CREATE_REQUEST_PREFIX:
+        if request_type == CREATE_REQUEST_PREFIX or request_type == ADOPT_REQUEST_PREFIX:
             outputs_from_stack = stack.get('outputs', [])
-            outputs = self.__translate_outputs_to_values_dict(outputs_from_stack)
+            outputs = self.__translate_outputs_to_values_dict(outputs_from_stack)                               
         return LifecycleExecution(request_id, status, failure_details=failure_details, outputs=outputs)
 
     def __determine_create_status(self, request_id, stack_id, stack_status):
@@ -314,6 +371,22 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
             raise ResourceDriverError(f'Cannot determine status for request \'{request_id}\' as the current Stack status is \'{stack_status}\' which is not a valid value for the expected transition')
         logger.debug('Stack %s has stack_status %s, setting status in response to %s', stack_id, stack_status, create_status)
         return create_status
+
+    def __determine_adopt_status(self, request_id, stack_id, stack_status):                
+        if self.adopt_config.skip_status_check:
+            logger.debug('Status check for adopt of stack id: %s will be skipped', stack_id)            
+            return STATUS_COMPLETE
+
+        if stack_status in self.adopt_config.adoptable_status_values:  
+            adopt_status = STATUS_COMPLETE
+        elif stack_status in [OS_STACK_STATUS_CREATE_IN_PROGRESS, OS_STACK_STATUS_ADOPT_IN_PROGRESS, OS_STACK_STATUS_RESUME_IN_PROGRESS, OS_STACK_STATUS_CHECK_IN_PROGRESS]:
+            adopt_status = STATUS_IN_PROGRESS
+        elif stack_status in [OS_STACK_STATUS_CREATE_FAILED, OS_STACK_STATUS_ADOPT_FAILED, OS_STACK_STATUS_CHECK_FAILED, OS_STACK_STATUS_SUSPEND_IN_PROGRESS, OS_STACK_STATUS_SUSPEND_COMPLETE]:
+            adopt_status = STATUS_FAILED
+        else:
+            raise ResourceDriverError(f'Cannot determine status for request \'{request_id}\' as the current Stack status is \'{stack_status}\' which is not a valid value for the expected transition')
+        logger.debug('Stack %s has stack_status %s, setting status in response to %s', stack_id, stack_status, adopt_status)
+        return adopt_status  
 
     def __determine_delete_status(self, request_id, stack_id, stack_status):
         if stack_status in [OS_STACK_STATUS_DELETE_IN_PROGRESS]:

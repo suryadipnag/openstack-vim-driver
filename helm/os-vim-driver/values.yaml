@@ -47,6 +47,13 @@ app:
         # timeout waiting for initial version check on Kafka producer/consumer initialisation
         # 5000ms is usually sufficient, increase if problems with NoBrokersAvailable occur
         api_version_auto_timeout_ms: 5000
+      adopt:
+        # Flag to override status check and allow adoption of a stack in any status
+        skip_status_check: False
+        # List of openstack stack status considered OK to adopt: 
+        # Potential Values: 
+        # CREATE_COMPLETE,ADOPT_COMPLETE,RESUME_COMPLETE,CHECK_COMPLETE,UPDATE_COMPLETE,SNAPSHOT_COMPLETE,INIT_COMPLETE,ROLLBACK_COMPLETE
+        adoptable_status_values: ['CREATE_COMPLETE','ADOPT_COMPLETE','RESUME_COMPLETE','CHECK_COMPLETE','UPDATE_COMPLETE']  
 
     security:
       ssl:
