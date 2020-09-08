@@ -1,6 +1,6 @@
 # Resources
 
-The Openstack driver allows you to create new or adopt pre-existing Stacks in a target Openstack as part of a `Create` or `Adopt` lifecycle transition (then remove the Stack with `Delete`). This is done by configuring the use of the driver on Create/Adopt/Delete and by including Heat or Tosca templates in your Resource package. 
+The Openstack driver allows you to create new or adopt pre-existing Stacks in a target Openstack as part of a `Create` or `Adopt` lifecycle transition (then remove the Stack with `Delete`). This is done by configuring the use of the driver on Create/Adopt/Delete and by including Heat or Tosca templates in your Resource package for (for a `Create` transistion).
 
 The driver also supports finding existing Networks in a target Openstack when attempting to find an external reference Resource (in an Assembly design).
 
