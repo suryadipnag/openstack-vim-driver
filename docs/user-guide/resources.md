@@ -1,12 +1,12 @@
 # Resources
 
-The Openstack driver allows you to create Stacks in a target Openstack as part of a `Create` lifecycle transition (then remove the Stack with `Delete`). This is done by configuring the use of the driver on Create/Delete and by including Heat or Tosca templates in your Resource package. 
+The Openstack driver allows you to create new or adopt pre-existing Stacks in a target Openstack as part of a `Create` or `Adopt` lifecycle transition (then remove the Stack with `Delete`). This is done by configuring the use of the driver on Create/Adopt/Delete and by including Heat or Tosca templates in your Resource package for (for a `Create` transistion).
 
 The driver also supports finding existing Networks in a target Openstack when attempting to find an external reference Resource (in an Assembly design).
 
 # Resource Descriptor
 
-Openstack driver should only be used on Create/Delete transitions.
+Openstack driver should only be used on Create/Adopt/Delete transitions.
 
 Example descriptor:
 ```
@@ -17,6 +17,12 @@ lifecycle:
         selector:
           infrastructure-type:
             Openstack
+  Adopt: 
+    drivers:
+      Openstack:
+        selector:
+          infrastructure-type:
+            Openstack            
   Delete:
     drivers:
       openstack:
@@ -38,6 +44,25 @@ queries:
       selector:
         infrastructure-type:
           Openstack
+```
+
+## Adoptable Stack States
+If adopting a pre existing Openstack stack via the `Adopt` lifecycle transistion, the stack must be in one of the following states or the adopt will fail:
+```
+['CREATE_COMPLETE','ADOPT_COMPLETE','RESUME_COMPLETE','CHECK_COMPLETE','UPDATE_COMPLETE'] 
+```
+
+To configure additional states or bypass the status check completely, you can work with the settings in the `values.yaml` in the helm charts under `app.config.override.adopt`. It is not recommended to set `skip_status_check` to `True` unless it is a test environment. Other potential states are listed in the comments above the `adoptable_status_values` setting:
+
+```yaml
+      adopt:
+        # Flag to override status check and allow adoption of a stack in any status
+        skip_status_check: False
+        # List of openstack stack status considered OK to adopt: 
+        # Potential Values: 
+        # CREATE_COMPLETE,ADOPT_COMPLETE,RESUME_COMPLETE,CHECK_COMPLETE,UPDATE_COMPLETE,SNAPSHOT_COMPLETE,INIT_COMPLETE,ROLLBACK_COMPLETE
+        adoptable_status_values: ['CREATE_COMPLETE','ADOPT_COMPLETE','RESUME_COMPLETE','CHECK_COMPLETE','UPDATE_COMPLETE']  
+
 ```
 
 # Resource Packages
