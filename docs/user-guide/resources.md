@@ -46,6 +46,25 @@ queries:
           Openstack
 ```
 
+## Adoptable Stack States
+If adopting a pre existing Openstack stack via the `Adopt` lifecycle transistion, the stack must be in one of the following states or the adopt will fail:
+```
+['CREATE_COMPLETE','ADOPT_COMPLETE','RESUME_COMPLETE','CHECK_COMPLETE','UPDATE_COMPLETE'] 
+```
+
+To configure additional states or bypass the status check completely, you can work with the settings in the `values.yaml` in the helm charts under `app.config.override.adopt`. It is not recommended to set `skip_status_check` to `True` unless it is a test environment. Other potential states are listed in the comments above the `adoptable_status_values` setting:
+
+```yaml
+      adopt:
+        # Flag to override status check and allow adoption of a stack in any status
+        skip_status_check: False
+        # List of openstack stack status considered OK to adopt: 
+        # Potential Values: 
+        # CREATE_COMPLETE,ADOPT_COMPLETE,RESUME_COMPLETE,CHECK_COMPLETE,UPDATE_COMPLETE,SNAPSHOT_COMPLETE,INIT_COMPLETE,ROLLBACK_COMPLETE
+        adoptable_status_values: ['CREATE_COMPLETE','ADOPT_COMPLETE','RESUME_COMPLETE','CHECK_COMPLETE','UPDATE_COMPLETE']  
+
+```
+
 # Resource Packages
 
 A Resource using Openstack infrastructure must include either TOSCA or Heat templates in the `Lifecycle` directory of the package:
