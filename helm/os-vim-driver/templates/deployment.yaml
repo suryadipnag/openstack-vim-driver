@@ -1,9 +1,12 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: os-vim-driver
 spec:
   replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      app: os-vim-driver
   template:
     metadata:
       labels:
@@ -28,9 +31,11 @@ spec:
         - name: os-vim-driver
           image: {{ .Values.docker.image }}:{{ .Values.docker.version }}
           imagePullPolicy: {{ .Values.docker.imagePullPolicy }}
-          securityContext:
-            # run as ovd
+          {{- if or (not (.Capabilities.APIVersions.Has "security.openshift.io/v1")) (eq .Release.Namespace "kube-system") (ne (toString .Values.global.arbitraryUids) "true") }}
+          # run as ovd user (100)
+          securityContent:
             runAsUser: 100
+          {{- end }}
           ports:
           - containerPort: 8292
             protocol: TCP
