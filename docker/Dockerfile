@@ -13,11 +13,13 @@ COPY whls/*.whl /whls/
 
 RUN addgroup -S ovd \
  && adduser -S ovd -G ovd -u 100 \
- && mkdir -p /var/ovd \
- && chown -R ovd:0 /var/ovd \
- && chmod -R 775 /var/ovd \
+ # set group to 0 to allow arbitrary users in OCP to write to these directories
  && chown -R ovd:0 /home/ovd \
  && chmod -R 775 /home/ovd \
+ && mkdir -p /var/ovd \
+ # set group to 0 to allow arbitrary users in OCP to write to these directories
+ && chown -R ovd:0 /var/ovd \
+ && chmod -R 775 /var/ovd \
  && apk add --no-cache bash binutils libc-dev \
  # These packages need to be installed so that we can install the Python dependencies.
  # We make this virtual so that we can remove them later
