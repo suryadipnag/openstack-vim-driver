@@ -1,5 +1,20 @@
 # Change Log
 
+## [2.1.0](https://github.com/accanto-systems/openstack-vim-driver/tree/2.1.0) (2020-09-30)
+[Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/2.0.1...2.1.0)
+
+**Implemented enhancements:**
+- Add Support for Adopt Lifecycle Transitions [\#68](https://github.com/accanto-systems/openstack-vim-driver/issues/68)
+- Helm installation does not work for OCP 4.4 (Kubernetes 1.17) [\#62](https://github.com/accanto-systems/openstack-vim-driver/issues/62)
+- Driver will not run in OCP Restricted SCC [\#61](https://github.com/accanto-systems/openstack-vim-driver/issues/61)
+- Issue/56 - support imported heat and tosca files [\#60](https://github.com/accanto-systems/openstack-vim-driver/issues/60)
+- Support imported files in Heat [\#56](https://github.com/accanto-systems/openstack-vim-driver/issues/56)
+- Support NFV tosca types [\#51](https://github.com/accanto-systems/openstack-vim-driver/issues/51)
+
+**Fixed bugs:**
+
+**Documentation:**
+
 ## [2.0.1](https://github.com/accanto-systems/openstack-vim-driver/tree/2.0.1) (2020-06-09)
 [Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/2.0.0...2.0.1)
 
