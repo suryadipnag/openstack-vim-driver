@@ -351,6 +351,8 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
             status = self.__determine_delete_status(request_id, stack_id, stack_status)
         if status == STATUS_FAILED:
             description = stack.get('stack_status_reason', None)
+            if request_type == ADOPT_REQUEST_PREFIX:
+                description = "Adopt Failed. Stack Status: "+stack.get('stack_status', None)+" Reason: "+stack.get('stack_status_reason', None)
             failure_details = FailureDetails(FAILURE_CODE_INFRASTRUCTURE_ERROR, description)
             status_reason = stack.get('stack_status_reason', None)
         outputs = None

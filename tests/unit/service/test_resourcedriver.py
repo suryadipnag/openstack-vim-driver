@@ -454,7 +454,7 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.assertIsInstance(execution, LifecycleExecution)
         self.assertEqual(execution.request_id, 'Adopt::1::request123')
         self.assertEqual(execution.status, 'FAILED')        
-        self.assertEqual(str(execution.failure_details), 'failure_code: INFRASTRUCTURE_ERROR description: SUSPEND_COMPLETE')
+        self.assertEqual(str(execution.failure_details), 'failure_code: INFRASTRUCTURE_ERROR description: Adopt Failed. Stack Status: SUSPEND_COMPLETE Reason: SUSPEND_COMPLETE')
 
     def test_get_lifecycle_execution_adopt_skip_status_check(self):
         # here we generate a stack status of suspended, but will still import, becuase the skip status check will be set
@@ -556,7 +556,7 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.assertEqual(execution.request_id, 'Adopt::1::request123')
         self.assertEqual(execution.status, 'FAILED')
         self.assertEqual(execution.failure_details.failure_code, 'INFRASTRUCTURE_ERROR')
-        self.assertEqual(execution.failure_details.description, 'For the test')
+        self.assertEqual(execution.failure_details.description, 'Adopt Failed. Stack Status: ADOPT_FAILED Reason: For the test')
         self.assertEqual(execution.outputs, None)
         self.assertEqual(execution.associated_topology, None)
 
