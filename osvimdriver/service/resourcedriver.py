@@ -352,7 +352,7 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         if status == STATUS_FAILED:
             description = stack.get('stack_status_reason', None)
             if request_type == ADOPT_REQUEST_PREFIX:
-                description = "Adopt Failed. Stack Status: "+stack.get('stack_status', None)+" Reason: "+stack.get('stack_status_reason', None)
+                description = "Adopt failed: cannot adopt stack with status "+stack.get('stack_status', None)
             failure_details = FailureDetails(FAILURE_CODE_INFRASTRUCTURE_ERROR, description)
             status_reason = stack.get('stack_status_reason', None)
         outputs = None
