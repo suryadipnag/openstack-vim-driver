@@ -33,7 +33,7 @@ The whl file is created in `dist/`
 
 ## 3. Package the docs
 
-Create a TAR of the docs directory using the appropriate command for y ou rdevelopment environment:
+Create a TAR of the docs directory using the appropriate command for your development environment:
 
 **Windows:**
 ```
@@ -58,10 +58,10 @@ cp dist/os_vim_driver-<release version number>-py3-none-any.whl docker/whls/
 cd docker
 ```
 
-4.3. Build the docker image (**tag with release version number and accanto repository**)
+4.3. Build the docker image (**tag with release version number and ibmcom repository**)
 
 ```
-docker build -t accanto/os-vim-driver:<release version number> .
+docker build -t ibmcom/os-vim-driver:<release version number> .
 ```
 
 ## 5. Build Helm Chart
