@@ -85,7 +85,7 @@ helm package helm/os-vim-driver
 6.5 Push the docker image to Dockerhub with:
 
 ```
-docker push accanto/os-vim-driver:<release version number>
+docker push ibmcom/os-vim-driver:<release version number>
 ```
 
 ## 7. Generate Release Notes
