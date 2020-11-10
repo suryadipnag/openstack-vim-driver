@@ -164,7 +164,7 @@ resources:
 
 The Openstack VIM driver can create any TOSCA types from v1.0 of the [simple profile](http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html) that are translatable to a known Heat type. The ability to translate is determined by two aspects:
 
-- the conversion support offered in the [heat translator](https://github.com/accanto-systems/heat-translator/tree/accanto) library used by this driver
+- the conversion support offered in the [heat translator](https://github.com/IBM/heat-translator/tree/accanto) library used by this driver
 - additional types provided by this driver
 
 To use TOSCA when creating infrastructure, add a template to your Resource package with the name `tosca.yaml` or `tosca.yml`:
