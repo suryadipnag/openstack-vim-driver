@@ -1,6 +1,6 @@
 # Openstack VIM Driver
 
-This driver implements the [Stratoss&trade; Lifecycle Manager](http://servicelifecyclemanager.com/2.1.0/) Brent Resource Driver APIs to allow infrastructure to be managed in Openstack.
+This driver implements the [IBM Telco Network Cloud Manager - Orchestration](https://www.ibm.com/support/knowledgecenter/SSDSDC_1.3/welcome_page/kc_welcome-444.html) Brent Resource Driver APIs to allow infrastructure to be managed in Openstack.
 
 The driver has been written in Python3 and can be installed with the publicly available docker image and helm chart.
 
