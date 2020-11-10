@@ -33,10 +33,15 @@ The whl file is created in `dist/`
 
 ## 3. Package the docs
 
-Create a TAR of the docs directory:
+Create a TAR of the docs directory using the appropriate command for y ou rdevelopment environment:
 
+**Windows:**
 ```
 tar -cvzf os-vim-driver-<release version number>-docs.tgz docs/ --transform s/docs/os-vim-driver-<release version number>-docs/
+```
+**Mac:**
+```
+tar -cvz -s /docs/os-vim-driver-<release version number>-docs/ -f os-vim-driver-<release version number>-docs.tgz docs/
 ```
 
 ## 4. Build Docker Image
