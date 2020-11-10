@@ -12,10 +12,10 @@ You will also need a controller machine (can be one of the Kubernetes cluster no
 
 ### Download
 
-Download the Helm chart from the [releases](https://github.com/accanto-systems/openstack-vim-driver/releases) page to your machine.
+Download the Helm chart from the [releases](https://github.com/IBM/openstack-vim-driver/releases) page to your machine.
 
 ```
-wget https://github.com/accanto-systems/openstack-vim-driver/releases/download/<version>/os-vim-driver-<version>.tgz
+wget https://github.com/IBM/openstack-vim-driver/releases/download/<version>/os-vim-driver-<version>.tgz
 ```
 
 ### Configure
