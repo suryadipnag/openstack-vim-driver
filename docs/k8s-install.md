@@ -28,8 +28,7 @@ helm inspect values os-vim-driver-<version>.tgz
 
 The driver has a dependency on Kafka, which it uses to send response messages back to Brent. Therefore it must be installed with access to the same shared Kafka cluster as Brent. 
 
-By default, the driver will attempt to connect to Kafka with the address `foundation-kafka:9092`.
-> **Note:** IBM _Telco Network Cloud Manager - Orchestration_ uses a value `alm-kafka:9092`.
+By default, the driver will attempt to connect to Kafka with the address `alm-kafka:9092`.
 
 If you need to set a different address (or configure any of the other values of the Helm chart) you may do so by creating a custom values file.
 

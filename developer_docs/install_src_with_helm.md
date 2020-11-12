@@ -44,7 +44,7 @@ Run the helm chart, setting the Docker image version if different to the default
 helm install helm/os-vim-driver --name os-vim-driver --set docker.version=<driver-version>
 ```
 
-The above installation will expect Kafka to be running in the same Kubernetes namespace with name `foundation-kafka`, which is the default installed by Stratoss&trade; Lifecycle Manager. If different, override the Kafka address:
+The above installation will expect Kafka to be running in the same Kubernetes namespace with name `alm-kafka`, which is the default installed by Stratoss&trade; Lifecycle Manager. If different, override the Kafka address:
 
 ```
 helm install helm/os-vim-driver --name os-vim-driver --set app.config.override.messaging.connection_address=myhost:myport
