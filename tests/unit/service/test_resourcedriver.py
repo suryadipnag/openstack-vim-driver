@@ -23,7 +23,7 @@ class TestPropertiesMerger(unittest.TestCase):
         result = merger.merge(
             PropValueMap({
                 'propA': {'type': 'string', 'value': 'propA'}, 
-                'propB': {'type': 'string', 'value': 'propB'}
+                'propB': {'type': 'integer', 'value': 1}
             }),
             PropValueMap({
                 'propA': {'type': 'string', 'value': 'sysPropA'}
@@ -31,7 +31,7 @@ class TestPropertiesMerger(unittest.TestCase):
         )
         self.assertEqual(result, PropValueMap({
             'propA': {'type': 'string', 'value': 'propA'}, 
-            'propB': {'type': 'string', 'value': 'propB'},
+            'propB': {'type': 'integer', 'value': 1},
             'system_propA': {'type': 'string', 'value': 'sysPropA'}
         }))
 

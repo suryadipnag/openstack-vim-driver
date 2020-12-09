@@ -43,6 +43,49 @@ parameters:
     type: string
 ```
 
+Heat supports the following parameter types (correct for Rocky-Victoria releases): string, number, boolean, json (JSON formatted map/list), comma separated list. As TNCO (ALM) supports it's own set of property types it's important that each parameter in your Heat template uses the correct type associated with the type given to the property in the Resource descriptor. For example:
+
+**Descriptor:**
+
+```
+properties:
+  prop_a:
+    type: string
+  prop_b:
+    type: boolean
+  prop_c:
+    type: float
+```
+**HEAT:**
+
+```
+parameters:
+  prop_a:
+    type: string
+  prop_b:
+    type: boolean
+  prop_c:
+    type: number
+```
+
+You may refer to the table below to select the correct types:
+
+| Resource Descriptor Type | Heat Template Type |
+| --- | --- | 
+| string | string |
+| integer | number |
+| float | number |
+| boolean | boolean | 
+| timestamp | string |
+| map | json |
+| list | json | 
+| custom data type | json |
+| key | string (see [keys](#keys)) | 
+
+> Note: as you'll see from the table above; maps, lists and custom data types are converted to JSON strings.
+
+> Note: you'll notice the `comma separated list` Heat type has no matching Resource descriptor type. This type is, in simple terms, a formatted string so if you must use it in your Heat template then set the Resource descriptor type to string (and enter a comma separated list for all values).
+
 ## Keys
 
 A Resource descriptor can also include properties of type `key` to reference key pairs created as part of other Resource infrastructure or onboarded manually into Stratoss LM. 
