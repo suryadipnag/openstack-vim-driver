@@ -394,7 +394,7 @@ class TestResourceDriverHandler(unittest.TestCase):
             'stack_status': 'CREATE_COMPLETE',
             'outputs': [
                 {'output_key': 'outputA', 'output_value': 'valueA'},
-                {'output_key': 'outputB', 'output_value': 'valueB'}
+                {'output_key': 'outputB', 'output_value': 123}
             ]
         }
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
@@ -403,7 +403,7 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.assertEqual(execution.request_id, 'Create::1::request123')
         self.assertEqual(execution.status, 'COMPLETE')
         self.assertEqual(execution.failure_details, None)
-        self.assertEqual(execution.outputs, {'outputA': 'valueA', 'outputB': 'valueB'})
+        self.assertEqual(execution.outputs, {'outputA': 'valueA', 'outputB': 123})
         self.assertEqual(execution.associated_topology, None)
 
     def test_get_lifecycle_execution_adopt_complete(self):
