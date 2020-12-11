@@ -23,7 +23,12 @@ class TestPropertiesMerger(unittest.TestCase):
         result = merger.merge(
             PropValueMap({
                 'propA': {'type': 'string', 'value': 'propA'}, 
-                'propB': {'type': 'integer', 'value': 1}
+                'propB': {'type': 'integer', 'value': 1},
+                'propC': {'type': 'float', 'value': 1.6},
+                'propD': {'type': 'boolean', 'value': True},
+                'propE': {'type': 'timestamp', 'value': '2020-11-23T11:49:33.308703Z'},
+                'propF': {'type': 'list', 'value': ['A', 'B']},
+                'propG': {'type': 'map', 'value': {'A': 'ValueA', 'B': 'ValueB'}}
             }),
             PropValueMap({
                 'propA': {'type': 'string', 'value': 'sysPropA'}
@@ -32,6 +37,11 @@ class TestPropertiesMerger(unittest.TestCase):
         self.assertEqual(result, PropValueMap({
             'propA': {'type': 'string', 'value': 'propA'}, 
             'propB': {'type': 'integer', 'value': 1},
+            'propC': {'type': 'float', 'value': 1.6},
+            'propD': {'type': 'boolean', 'value': True},
+            'propE': {'type': 'timestamp', 'value': '2020-11-23T11:49:33.308703Z'},
+            'propF': {'type': 'list', 'value': ['A', 'B']},
+            'propG': {'type': 'map', 'value': {'A': 'ValueA', 'B': 'ValueB'}},
             'system_propA': {'type': 'string', 'value': 'sysPropA'}
         }))
 
