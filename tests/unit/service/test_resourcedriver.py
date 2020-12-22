@@ -23,7 +23,12 @@ class TestPropertiesMerger(unittest.TestCase):
         result = merger.merge(
             PropValueMap({
                 'propA': {'type': 'string', 'value': 'propA'}, 
-                'propB': {'type': 'string', 'value': 'propB'}
+                'propB': {'type': 'integer', 'value': 1},
+                'propC': {'type': 'float', 'value': 1.6},
+                'propD': {'type': 'boolean', 'value': True},
+                'propE': {'type': 'timestamp', 'value': '2020-11-23T11:49:33.308703Z'},
+                'propF': {'type': 'list', 'value': ['A', 'B']},
+                'propG': {'type': 'map', 'value': {'A': 'ValueA', 'B': 'ValueB'}}
             }),
             PropValueMap({
                 'propA': {'type': 'string', 'value': 'sysPropA'}
@@ -31,7 +36,12 @@ class TestPropertiesMerger(unittest.TestCase):
         )
         self.assertEqual(result, PropValueMap({
             'propA': {'type': 'string', 'value': 'propA'}, 
-            'propB': {'type': 'string', 'value': 'propB'},
+            'propB': {'type': 'integer', 'value': 1},
+            'propC': {'type': 'float', 'value': 1.6},
+            'propD': {'type': 'boolean', 'value': True},
+            'propE': {'type': 'timestamp', 'value': '2020-11-23T11:49:33.308703Z'},
+            'propF': {'type': 'list', 'value': ['A', 'B']},
+            'propG': {'type': 'map', 'value': {'A': 'ValueA', 'B': 'ValueB'}},
             'system_propA': {'type': 'string', 'value': 'sysPropA'}
         }))
 
@@ -394,7 +404,7 @@ class TestResourceDriverHandler(unittest.TestCase):
             'stack_status': 'CREATE_COMPLETE',
             'outputs': [
                 {'output_key': 'outputA', 'output_value': 'valueA'},
-                {'output_key': 'outputB', 'output_value': 'valueB'}
+                {'output_key': 'outputB', 'output_value': 123}
             ]
         }
         driver = ResourceDriverHandler(self.mock_location_translator, resource_driver_config=self.resource_driver_config, heat_translator_service=self.mock_heat_translator, tosca_discovery_service=self.mock_tosca_discover_service)
@@ -403,7 +413,7 @@ class TestResourceDriverHandler(unittest.TestCase):
         self.assertEqual(execution.request_id, 'Create::1::request123')
         self.assertEqual(execution.status, 'COMPLETE')
         self.assertEqual(execution.failure_details, None)
-        self.assertEqual(execution.outputs, {'outputA': 'valueA', 'outputB': 'valueB'})
+        self.assertEqual(execution.outputs, {'outputA': 'valueA', 'outputB': 123})
         self.assertEqual(execution.associated_topology, None)
 
     def test_get_lifecycle_execution_adopt_complete(self):

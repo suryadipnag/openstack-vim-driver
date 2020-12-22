@@ -146,6 +146,3 @@ class TestHeatInputUtil(unittest.TestCase):
         # (and ultimately throw an error if it is)
         new_props = util.filter_used_properties(heat_yml, orig_props)
         self.assertEqual(new_props, {})
-
-
-        
