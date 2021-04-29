@@ -26,21 +26,21 @@ class HeatInputUtil:
 
     def __filter_from_propvaluemap(self, parameters, prop_value_map):
         used_properties = {}
-        for k, v in parameters.items():
-            if k in prop_value_map:
-                used_properties[k] = self.__extract_property_from_value_map(prop_value_map, k)
-            elif k.endswith(PUBLIC_KEY_SUFFIX):
-                key_name = k[:len(k)-len(PUBLIC_KEY_SUFFIX)]
+        for param_name, param_def in parameters.items():
+            if param_name in prop_value_map:
+                used_properties[param_name] = self.__extract_property_from_value_map(prop_value_map, param_name)
+            elif param_name.endswith(PUBLIC_KEY_SUFFIX):
+                key_name = param_name[:len(param_name)-len(PUBLIC_KEY_SUFFIX)]
                 if key_name in prop_value_map:
                     full_value = prop_value_map.get_value_and_type(key_name)
                     if full_value.get('type') == 'key' and 'publicKey' in full_value:
-                        used_properties[k] = full_value.get('publicKey')
-            elif k.endswith(PRIVATE_KEY_SUFFIX):
-                key_name = k[:len(k)-len(PRIVATE_KEY_SUFFIX)]
+                        used_properties[param_name] = full_value.get('publicKey')
+            elif param_name.endswith(PRIVATE_KEY_SUFFIX):
+                key_name = param_name[:len(param_name)-len(PRIVATE_KEY_SUFFIX)]
                 if key_name in prop_value_map:
                     full_value = prop_value_map.get_value_and_type(key_name)
                     if full_value.get('type') == 'key' and 'privateKey' in full_value:
-                        used_properties[k] = full_value.get('privateKey')
+                        used_properties[param_name] = full_value.get('privateKey')
         return used_properties
 
     def __extract_property_from_value_map(self, prop_value_map, property_name):

@@ -1,5 +1,12 @@
 # Change Log
 
+## [3.0.0](https://github.com/IBM/openstack-vim-driver/tree/3.0.0) (2021-04-29)
+[Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/2.1.0...3.0.0)
+
+**Implemented enhancements:**
+- Support structured properties [\#76](https://github.com/IBM/openstack-vim-driver/issues/76)
+- Update connection_address to iaf-system-kafka-bootstrap:9092 in driver values.yaml to be compatible with TNC-O installed with IAF  [\#78](https://github.com/IBM/openstack-vim-driver/issues/78)
+
 ## [2.1.0](https://github.com/accanto-systems/openstack-vim-driver/tree/2.1.0) (2020-09-30)
 [Full Changelog](https://github.com/accanto-systems/openstack-vim-driver/compare/2.0.1...2.1.0)
 
