@@ -1,6 +1,6 @@
 name: os-vim-driver
-version: 2.2.0.dev0
-appVersion: 2.2.0.dev0
+version: ${version}
+appVersion: ${version}
 apiVersion: v1
 description: A Helm chart for the Openstack VIM Driver
 keywords:
