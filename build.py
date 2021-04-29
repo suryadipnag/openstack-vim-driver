@@ -17,7 +17,7 @@ DOCS_DIR = 'docs'
 DOCKER_WHLS_DIR = 'whls'
 DOCKER_PATH = 'docker'
 DOCKER_IMG_NAME = 'os-vim-driver'
-DOCKER_REGISTRY = 'accanto'
+DOCKER_REGISTRY = 'ibmcom'
 
 HELM_CHART_PATH = os.path.join('helm', 'os-vim-driver')
 HELM_CHART_NAME = 'os-vim-driver'
