@@ -7,26 +7,28 @@ with open('osvimdriver/pkg_info.json') as fp:
 with open("DESCRIPTION.md", "r") as description_file:
     long_description = description_file.read()
 
+ignition_version = _pkg_info['ignition-version']
+
 setup(
     name='os-vim-driver',
     version=_pkg_info['version'],
-    author='Accanto Systems',
+    author='IBM',
     description='Openstack implementation of a VIM driver',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/accanto-systems/openstack-vim-driver",
+    url="https://github.com/IBM/openstack-vim-driver",
     packages=find_namespace_packages(include=['osvimdriver*']),
     include_package_data=True,
     install_requires=[
-        'ignition-framework{0}'.format(_pkg_info['ignition-version']),
+        f'ignition-framework{ignition_version}',
         'python-heatclient>=1.17.0,<2.0',
         'python-keystoneclient>=3.19.0,<4.0',
         'python-neutronclient>=6.5.1,<7.0',
         'python-novaclient>=13.0.0,<14.0.0',
-        'tosca-parser @ git+https://github.com/accanto-systems/tosca-parser.git@accanto',
-        'heat-translator @ git+https://github.com/accanto-systems/heat-translator.git@accanto-nfv',
-        'uwsgi>=2.0.18,<3.0',
-        'gunicorn>=19.9.0,<20.0'
+        'tosca-parser @ git+https://github.com/IBM/tosca-parser.git@accanto',
+        'heat-translator @ git+https://github.com/IBM/heat-translator.git@accanto-nfv',
+        'uwsgi==2.0.19.1',
+        'gunicorn==20.1.0'
     ],
     entry_points='''
         [console_scripts]

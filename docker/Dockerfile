@@ -1,4 +1,4 @@
-FROM python:3.7-alpine
+FROM python:3.8-alpine
 
 ARG DRIVER_PORT
 ENV DRIVER_PORT ${DRIVER_PORT:-8292}
@@ -12,7 +12,7 @@ ENV WSGI_CONTAINER ${WSGI_CONTAINER:-gunicorn}
 COPY whls/*.whl /whls/
 
 RUN addgroup -S ovd \
- && adduser -S ovd -G ovd -u 100 \
+ && adduser -S ovd -G ovd -u 101 \
  # set group to 0 to allow arbitrary users in OCP to write to these directories
  && chown -R ovd:0 /home/ovd \
  && chmod -R 775 /home/ovd \
