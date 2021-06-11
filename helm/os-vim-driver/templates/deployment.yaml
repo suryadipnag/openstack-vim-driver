@@ -32,9 +32,9 @@ spec:
           image: {{ .Values.docker.image }}:{{ .Values.docker.version }}
           imagePullPolicy: {{ .Values.docker.imagePullPolicy }}
           {{- if or (not (.Capabilities.APIVersions.Has "security.openshift.io/v1")) (eq .Release.Namespace "kube-system") (ne (toString .Values.global.arbitraryUids) "true") }}
-          # run as ovd user (100)
+          # run as ovd user (101)
           securityContext:
-            runAsUser: 100
+            runAsUser: 101
           {{- end }}
           ports:
           - containerPort: 8292
