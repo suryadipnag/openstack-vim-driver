@@ -1,5 +1,11 @@
 # Change Log
 
+## [3.0.1](https://github.com/IBM/openstack-vim-driver/tree/3.0.1) (2021-07-16)
+[Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/2.0.1...3.0.1)
+
+**Implemented enhancements:**
+- Uplift dependency versions [\#81](https://github.com/IBM/openstack-vim-driver/issues/81)
+
 ## [3.0.0](https://github.com/IBM/openstack-vim-driver/tree/3.0.0) (2021-04-29)
 [Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/2.1.0...3.0.0)
 

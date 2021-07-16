@@ -56,7 +56,7 @@ Ignition loads configuration properties from any sources provided to the applica
 
 - `osvimdriver/config/default_config.yml` - this is the default configuration file, bundled into the distributed version of your application
 - `ovd_config.yml` - Ignition will search for a configuration file with this name at the directory the application has been started from (ignored if not found)
-- `/var/kubedriver/ovd_config.yml` - this configuration file is only used in the Helm chart installation. Ignition will search for a configuration file at this path (ignored if not found)
+- `/var/ovd/ovd_config.yml` - this configuration file is only used in the Helm chart installation. Ignition will search for a configuration file at this path (ignored if not found)
 - `OVD_CONFIG` - set this environment variable to a file path and Ignition will load the configuration file (ignored if the environment variable is not set)
 
 This allows the user flexibility in how to configure the application. When running with Python (using `ovd-dev` or `ovd`) the best approach is to create a `ovd_config.yml` file in the current directory or configure `OVD_CONFIG` with a file path. 
