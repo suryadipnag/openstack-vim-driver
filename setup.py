@@ -33,6 +33,5 @@ setup(
     entry_points='''
         [console_scripts]
         ovd-dev=osvimdriver.__main__:main
-    ''',
-    scripts=['osvimdriver/bin/ovd-uwsgi', 'osvimdriver/bin/ovd-gunicorn', 'osvimdriver/bin/ovd']
+    '''
 )

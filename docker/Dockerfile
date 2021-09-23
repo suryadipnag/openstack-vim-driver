@@ -6,8 +6,6 @@ ARG NUM_PROCESSES
 ENV NUM_PROCESSES ${NUM_PROCESSES:-4}
 ARG NUM_THREADS
 ENV NUM_THREADS ${NUM_THREADS:-2}
-ARG WSGI_CONTAINER
-ENV WSGI_CONTAINER ${WSGI_CONTAINER:-gunicorn}
 
 COPY whls/*.whl /whls/
 
@@ -33,4 +31,5 @@ WORKDIR /home/ovd
 
 EXPOSE 8292
 
-CMD ["ovd"]
+CMD if [ $SSL_ENABLED | tr [:upper:] [:lower:] == "true" ]; then SSL="--certfile /var/ovd/certs/tls.crt --keyfile /var/ovd/certs/tls.key" ; fi \
+&& gunicorn --workers $NUM_PROCESSES --bind :$DRIVER_PORT $SSL "osvimdriver:create_wsgi_app()"
