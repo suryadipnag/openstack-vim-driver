@@ -27,12 +27,10 @@ setup(
         'python-novaclient>=13.0.0,<14.0.0',
         'tosca-parser @ git+https://github.com/IBM/tosca-parser.git@accanto',
         'heat-translator @ git+https://github.com/IBM/heat-translator.git@accanto-nfv',
-        'uwsgi==2.0.19.1',
         'gunicorn==20.1.0'
     ],
     entry_points='''
         [console_scripts]
         ovd-dev=osvimdriver.__main__:main
-    ''',
-    scripts=['osvimdriver/bin/ovd-uwsgi', 'osvimdriver/bin/ovd-gunicorn', 'osvimdriver/bin/ovd']
+    '''
 )
