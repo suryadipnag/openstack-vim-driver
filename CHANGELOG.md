@@ -1,7 +1,13 @@
 # Change Log
 
+## [3.1.0](https://github.com/IBM/openstack-vim-driver/tree/3.1.0) (2021-12-10)
+[Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/3.0.1...3.1.0)
+
+**Implemented enhancements:**
+- Remove uwsgi and support graceful shutdown [\#85](https://github.com/IBM/openstack-vim-driver/issues/85)
+
 ## [3.0.1](https://github.com/IBM/openstack-vim-driver/tree/3.0.1) (2021-07-16)
-[Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/2.0.1...3.0.1)
+[Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/3.0.0...3.0.1)
 
 **Implemented enhancements:**
 - Uplift dependency versions [\#81](https://github.com/IBM/openstack-vim-driver/issues/81)
