@@ -4,9 +4,6 @@
 [Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/3.0.1...3.1.0)
 
 **Implemented enhancements:**
-- Update kafka messaging address [\#91](https://github.com/IBM/openstack-vim-driver/issues/91)
-
-**Implemented enhancements:**
 - Remove uwsgi and support graceful shutdown [\#85](https://github.com/IBM/openstack-vim-driver/issues/85)
 
 ## [3.0.1](https://github.com/IBM/openstack-vim-driver/tree/3.0.1) (2021-07-16)
