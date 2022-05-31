@@ -1,5 +1,14 @@
 # Change Log
 
+## [3.1.1](https://github.com/IBM/openstack-vim-driver/tree/3.1.1) (2022-05-31)
+[Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/3.1.0...3.1.1)
+
+**Implemented enhancements:**
+- Ingress removal [\#92](https://github.com/IBM/openstack-vim-driver/issues/92)
+- Update docker image location [\#90](https://github.com/IBM/openstack-vim-driver/issues/90)
+- Add Jenkinsfile [\#87](https://github.com/IBM/openstack-vim-driver/issues/87)
+- Accept non-release version [\#86](https://github.com/IBM/openstack-vim-driver/issues/86)
+
 ## [3.1.0](https://github.com/IBM/openstack-vim-driver/tree/3.1.0) (2021-12-10)
 [Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/3.0.1...3.1.0)
 
