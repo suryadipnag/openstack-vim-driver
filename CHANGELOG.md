@@ -1,5 +1,12 @@
 # Change Log
 
+## [3.1.1](https://github.com/IBM/openstack-vim-driver/tree/3.1.1) (2022-05-31)
+[Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/3.1.0...3.1.1)
+
+**Implemented enhancements:**
+- Ingress removal [\#88](https://github.com/IBM/openstack-vim-driver/issues/88)
+- Kafka instance name changed & updated ignition version [\#91](https://github.com/IBM/openstack-vim-driver/issues/91)
+
 ## [3.1.0](https://github.com/IBM/openstack-vim-driver/tree/3.1.0) (2021-12-10)
 [Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/3.0.1...3.1.0)
 
