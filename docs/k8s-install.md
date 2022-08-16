@@ -35,7 +35,7 @@ kafka host value must be set as follows, in values.yaml file of the helm package
 * For CP4NA v2.3/v2.3+, the kafka host must be cp4na-o-events-kafka-bootstrap  
 
 
-By default, the driver will attempt to connect to Kafka with the address `alm-kafka:9092`.  For [All In One](https://github.com/accanto-systems/lm-allinone) it should be set to `foundation-kafka:9092`.
+By default, the driver will attempt to connect to Kafka with the address `cp4na-o-events-kafka-bootstrap:9092`.
 
 If you need to set a different address (or configure any of the other values of the Helm chart) you may do so by creating a custom values file.
 
