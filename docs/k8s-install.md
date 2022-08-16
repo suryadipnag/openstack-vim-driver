@@ -62,7 +62,7 @@ You will reference the custom-values.yml file when installing the chart with Hel
 Install the chart using the Helm CLI, adding any custom values file if created.
 
 ```
-helm install os-vim-driver-<version>.tgz --name os-vim-driver -f custom-values.yml
+helm install os-vim-driver os-vim-driver-<version>.tgz -f custom-values.yml
 ```
 
 ### Confirm 
