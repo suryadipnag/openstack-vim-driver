@@ -6,7 +6,7 @@ This section details how to install the Openstack driver into a Kubernetes envir
 
 To complete the install you will need a Kubernetes cluster. 
 
-You will also need a controller machine (can be one of the Kubernetes cluster nodes) to perform the installation from. This machine must have the Helm CLI tool installed and initialised with access to your cluster.
+You will also need a controller machine (can be one of the Kubernetes cluster nodes) to perform the installation from. This machine must have the Helm CLI tool installed and initialised with access to your cluster. Please note that `Helm v3` is required.
 
 ## Installation
 
