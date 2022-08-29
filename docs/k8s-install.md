@@ -67,4 +67,4 @@ helm install os-vim-driver os-vim-driver-<version>.tgz -f custom-values.yml
 
 ### Confirm 
 
-You can confirm the driver is working by accessing: https://<kubernetes-node-ip>:31681/management/health
+You can confirm the driver is working by accessing: `https://<kubernetes-node-ip>:31681/management/health`
