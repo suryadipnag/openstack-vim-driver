@@ -67,6 +67,4 @@ helm install os-vim-driver os-vim-driver-<version>.tgz -f custom-values.yml
 
 ### Confirm 
 
-You can confirm the driver is working by accessing the Swagger UI included to render the API definitions.
-
-Access the UI at `https://your_host:31681/api/driver/ui` e.g. [`http://localhost:31681/api/driver/ui`](http://localhost:31681/api/driver/ui)
+You can confirm the driver is working by accessing: https://<kubernetes-node-ip>:31681/management/health
