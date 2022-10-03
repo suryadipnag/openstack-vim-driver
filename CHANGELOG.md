@@ -1,5 +1,16 @@
 # Change Log
 
+## [3.2.0](https://github.com/IBM/openstack-vim-driver/tree/3.2.0) (2022-09-30)
+[Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/3.1.1...3.2.0)
+
+**Dependencies:**
+- Upgraded to Ignition 3.4.1,  which includes Multitenency [\#106](https://github.com/IBM/openstack-vim-driver/issues/106)
+
+**Implemented enhancements:**
+- Add note for KAFKA address change  [\#97](https://github.com/IBM/openstack-vim-driver/issues/97)
+- Update install instructions for Openstack VIM Driver [\#99](https://github.com/IBM/openstack-vim-driver/issues/99)
+- Fix Vulnerabilities [\#103](https://github.com/IBM/openstack-vim-driver/issues/103)
+
 ## [3.1.1](https://github.com/IBM/openstack-vim-driver/tree/3.1.1) (2022-05-31)
 [Full Changelog](https://github.com/IBM/openstack-vim-driver/compare/3.1.0...3.1.1)
 
