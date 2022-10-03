@@ -6,7 +6,7 @@ This section details how to install the Openstack driver into a Kubernetes envir
 
 To complete the install you will need a Kubernetes cluster. 
 
-You will also need a controller machine (can be one of the Kubernetes cluster nodes) to perform the installation from. This machine must have the Helm CLI tool installed and initialised with access to your cluster.
+You will also need a controller machine (can be one of the Kubernetes cluster nodes) to perform the installation from. This machine must have the Helm CLI tool installed and initialised with access to your cluster. Please note that `Helm v3` is required.
 
 ## Installation
 
@@ -28,7 +28,14 @@ helm inspect values os-vim-driver-<version>.tgz
 
 The driver has a dependency on Kafka, which it uses to send response messages back to Brent. Therefore it must be installed with access to the same shared Kafka cluster as Brent. 
 
-By default, the driver will attempt to connect to Kafka with the address `alm-kafka:9092`.  For [All In One](https://github.com/accanto-systems/lm-allinone) it should be set to `foundation-kafka:9092`.
+kafka host value must be set as follows, in values.yaml file of the helm package, depending on the CP4NA versions:
+
+* For pre CP4NA v2.3, the kafka host must be iaf-system-kafka-bootstrap
+
+* For CP4NA v2.3/v2.3+, the kafka host must be cp4na-o-events-kafka-bootstrap  
+
+
+By default, the driver will attempt to connect to Kafka with the address `cp4na-o-events-kafka-bootstrap:9092`.
 
 If you need to set a different address (or configure any of the other values of the Helm chart) you may do so by creating a custom values file.
 
@@ -55,11 +62,9 @@ You will reference the custom-values.yml file when installing the chart with Hel
 Install the chart using the Helm CLI, adding any custom values file if created.
 
 ```
-helm install os-vim-driver-<version>.tgz --name os-vim-driver -f custom-values.yml
+helm install os-vim-driver os-vim-driver-<version>.tgz -f custom-values.yml
 ```
 
 ### Confirm 
 
-You can confirm the driver is working by accessing the Swagger UI included to render the API definitions.
-
-Access the UI at `https://your_host:31681/api/driver/ui` e.g. [`http://localhost:31681/api/driver/ui`](http://localhost:31681/api/driver/ui)
+You can confirm the driver is working by accessing: `https://<kubernetes-node-ip>:31681/management/health`
