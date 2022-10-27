@@ -28,6 +28,6 @@ Two example Resources have been included to demonstrate creating/deleting infras
 
 If a VM instance of a stack created through Openstack VIM Driver is locked ( from the OpenStack dashboard, you can lock Compute instances ) and an uninstall of the assembly is attempted, the assembly is deleted, but the stack is not.
 
-The DELETE stack REST api attempts to delete the stack, but it fails when it tries to delete the instance. The stack is left partially deleted in a failed_delete status. However the REST api returns a 204 status code, which means success.
+The DELETE stack REST api attempts to delete the stack, but it fails when it tries to delete the instance. The stack is left partially deleted in a failed_delete status.
 
 In this case when we add lock on VM instances manually from Openstack dashboard, the orphaned stack has to be removed manually.
