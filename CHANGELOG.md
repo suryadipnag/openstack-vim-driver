@@ -5,6 +5,7 @@
 
 **Implemented enhancements:**
 - Fix Vulnerabilities [\#116](https://github.com/IBM/openstack-vim-driver/issues/116)
+- Update Documentation [\#112](https://github.com/IBM/openstack-vim-driver/issues/112)
 
 **Dependencies:**
 - Upgraded to Ignition 3.4.2 [\#117](https://github.com/IBM/openstack-vim-driver/issues/117)
