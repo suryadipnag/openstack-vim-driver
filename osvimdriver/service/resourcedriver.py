@@ -183,12 +183,13 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
             raise InvalidRequestError("You must supply the stack_id in associated_topology")            
            
         stack_id = stack_resource_entry.element_id
-        heat_driver = openstack_location.heat_driver        
+        heat_driver = openstack_location.heat_driver
+        request_id = self.__build_request_id(ADOPT_REQUEST_PREFIX, stack_id)        
 
         if stack_id != None and len(stack_id.strip())!=0 and stack_id.strip() != "0":
             try:
                 # Check for valid stack
-                stack_to_adopt = heat_driver.get_stack(stack_id.strip())
+                stack_to_adopt = heat_driver.get_stack(stack_id.strip(), request_id)
             except StackNotFoundError as e:
                 raise InfrastructureNotFoundError(str(e)) from e
         else:
@@ -199,7 +200,6 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         if stack_status in [OS_STACK_STATUS_DELETE_COMPLETE, OS_STACK_STATUS_DELETE_IN_PROGRESS]:
             raise InvalidRequestError("The stack \'"+stack_id+"\' has been deleted")
         
-        request_id = self.__build_request_id(ADOPT_REQUEST_PREFIX, stack_id)
         associated_topology = self.__build_associated_topology_response(stack_id)
         return LifecycleExecuteResponse(request_id, associated_topology=associated_topology)
 
@@ -213,13 +213,13 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         else:
             stack_id = stack_resource_entry.element_id
             heat_driver = openstack_location.heat_driver
+            request_id = self.__build_request_id(DELETE_REQUEST_PREFIX, stack_id)
             try:
-                heat_driver.delete_stack(stack_id)
+                heat_driver.delete_stack(stack_id, request_id)
             except StackNotFoundError as e:
                 # This is fine, as we want the stack to be deleted. 
                 # Return a response so the monitor calls get_lifecycle_execution which will return the correct async result
                 pass
-            request_id = self.__build_request_id(DELETE_REQUEST_PREFIX, stack_id)
         return LifecycleExecuteResponse(request_id)
 
     def find_reference(self, instance_name, driver_files, deployment_location):
@@ -328,7 +328,7 @@ class ResourceDriverHandler(Service, ResourceDriverHandlerCapability):
         heat_driver = openstack_location.heat_driver
         request_type, stack_id, operation_id = self.__split_request_id(request_id)
         try:
-            stack = heat_driver.get_stack(stack_id)            
+            stack = heat_driver.get_stack(stack_id, request_id)            
         except StackNotFoundError as e:
             logger.debug('Stack not found: %s', stack_id)
             if request_type == DELETE_REQUEST_PREFIX:
